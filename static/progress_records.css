@@ -1,0 +1,947 @@
+css
+/* =========================================================
+   SPASIS PROGRESS RECORDS
+   PROFESSIONAL GIS THEME
+   ========================================================= */
+
+.prx-page{
+    max-width:1500px;
+    margin:0 auto;
+    padding:8px 6px 35px;
+    color:#243746;
+}
+
+
+/* =========================================================
+   PAGE HEADINGS
+   ========================================================= */
+
+.prx-heading{
+    margin:0 0 7px;
+    font-size:28px;
+    font-weight:800;
+    color:#075985;
+    letter-spacing:.2px;
+}
+
+.prx-subheading{
+    margin:0 0 22px;
+    text-align:center;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:#b45309;
+}
+
+
+/* =========================================================
+   TOP STAT CARDS
+   ========================================================= */
+
+.prx-stats{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:14px;
+    margin-bottom:20px;
+}
+
+.prx-card{
+    position:relative;
+    overflow:hidden;
+
+    border:0;
+    border-radius:14px;
+
+    padding:18px 20px;
+
+    min-height:86px;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 5px 16px rgba(15,45,65,.13);
+
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+}
+
+
+/* Decorative circle */
+
+.prx-card::after{
+    content:"";
+
+    position:absolute;
+    right:-30px;
+    top:-35px;
+
+    width:105px;
+    height:105px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.17);
+}
+
+
+/* =========================================================
+   DIVISION
+   ========================================================= */
+
+.prx-card:nth-child(1){
+    background:linear-gradient(135deg,#0f766e,#0d9488);
+}
+
+.prx-card:nth-child(1) p,
+.prx-card:nth-child(1) h3{
+    color:#fff;
+}
+
+
+/* =========================================================
+   DISTRICT
+   ========================================================= */
+
+.prx-card:nth-child(2){
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+}
+
+.prx-card:nth-child(2) p,
+.prx-card:nth-child(2) h3{
+    color:#fff;
+}
+
+
+/* =========================================================
+   TEHSIL
+   ========================================================= */
+
+.prx-card:nth-child(3){
+    background:linear-gradient(135deg,#6d28d9,#7c3aed);
+}
+
+.prx-card:nth-child(3) p,
+.prx-card:nth-child(3) h3{
+    color:#fff;
+}
+
+
+/* =========================================================
+   PACKAGE
+   ========================================================= */
+
+.prx-card:nth-child(4){
+    background:linear-gradient(135deg,#b45309,#d97706);
+}
+
+.prx-card:nth-child(4) p,
+.prx-card:nth-child(4) h3{
+    color:#fff;
+}
+
+
+/* =========================================================
+   RECORDS
+   ========================================================= */
+
+.prx-card:nth-child(5){
+    background:linear-gradient(135deg,#15803d,#16a34a);
+}
+
+.prx-card:nth-child(5) p,
+.prx-card:nth-child(5) h3{
+    color:#fff;
+}
+
+
+/* =========================================================
+   STAT TEXT
+   ========================================================= */
+
+.prx-card p{
+    position:relative;
+    z-index:2;
+
+    margin:0;
+
+    font-size:12px;
+    font-weight:700;
+
+    text-transform:uppercase;
+    letter-spacing:.7px;
+
+    opacity:.92;
+}
+
+.prx-card h3{
+    position:relative;
+    z-index:2;
+
+    margin:9px 0 0;
+
+    font-size:31px;
+    line-height:1;
+
+    font-weight:800;
+}
+
+
+/* =========================================================
+   STAT CARD HOVER
+   ========================================================= */
+
+.prx-card:hover{
+    transform:translateY(-4px);
+
+    box-shadow:
+        0 12px 28px rgba(15,45,65,.20);
+}
+
+
+/* =========================================================
+   FILTER SECTION
+   ========================================================= */
+
+.prx-filters{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+
+    gap:14px;
+
+    margin-bottom:20px;
+}
+
+
+/* =========================================================
+   FILTER BOX
+   ========================================================= */
+
+.prx-filter-box{
+    position:relative;
+
+    background:#ffffff;
+
+    border:1px solid #d7e2ea;
+
+    border-radius:13px;
+
+    padding:13px 14px 14px;
+
+    box-shadow:
+        0 4px 14px rgba(15,45,65,.07);
+
+    transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+}
+
+.prx-filter-box:hover{
+    border-color:#8eb8c9;
+
+    box-shadow:
+        0 7px 18px rgba(15,45,65,.10);
+
+    transform:translateY(-1px);
+}
+
+
+/* =========================================================
+   FILTER TITLE
+   ========================================================= */
+
+.prx-filter-title{
+    margin-bottom:7px;
+
+    font-size:11px;
+    font-weight:800;
+
+    text-transform:uppercase;
+
+    letter-spacing:.7px;
+
+    color:#345466;
+}
+
+
+/* =========================================================
+   SELECT BOX
+   ========================================================= */
+
+.prx-filter-box select{
+    width:100%;
+
+    box-sizing:border-box;
+
+    padding:11px 12px;
+
+    border:1px solid #b9ccd8;
+
+    border-radius:8px;
+
+    background:#f4f9fc;
+
+    color:#173b56;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:
+        border-color .18s ease,
+        background .18s ease,
+        box-shadow .18s ease;
+}
+
+
+/* Select hover */
+
+.prx-filter-box select:hover{
+    background:#eef7fb;
+
+    border-color:#5b9bb2;
+}
+
+
+/* Select focus */
+
+.prx-filter-box select:focus{
+    outline:none;
+
+    background:#ffffff;
+
+    border-color:#087f8c;
+
+    box-shadow:
+        0 0 0 3px rgba(8,127,140,.14);
+}
+
+
+/* Disabled select */
+
+.prx-filter-box select:disabled{
+    background:#edf2f5;
+
+    color:#8a99a3;
+
+    border-color:#d5dfe5;
+
+    cursor:not-allowed;
+
+    opacity:.85;
+}
+
+
+/* =========================================================
+   RO / MF / UF SECTION
+   ========================================================= */
+
+.prx-plants{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+
+    gap:14px;
+
+    margin-bottom:20px;
+}
+
+
+/* =========================================================
+   PLANT BOX BASE
+   ========================================================= */
+
+.prx-plant{
+    position:relative;
+
+    display:flex;
+
+    justify-content:space-between;
+    align-items:center;
+
+    overflow:hidden;
+
+    min-height:66px;
+
+    padding:15px 19px;
+
+    border-radius:13px;
+
+    border:1px solid transparent;
+
+    box-shadow:
+        0 5px 15px rgba(15,45,65,.09);
+
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+}
+
+
+/* Decorative circle */
+
+.prx-plant::after{
+    content:"";
+
+    position:absolute;
+
+    right:-28px;
+    top:-30px;
+
+    width:85px;
+    height:85px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.17);
+}
+
+
+/* Plant title */
+
+.prx-plant span{
+    position:relative;
+    z-index:2;
+
+    font-size:13px;
+    font-weight:800;
+
+    color:#fff;
+}
+
+
+/* Plant number */
+
+.prx-plant strong{
+    position:relative;
+    z-index:2;
+
+    font-size:28px;
+    font-weight:800;
+
+    color:#fff;
+}
+
+
+/* =========================================================
+   RO - BLUE
+   ========================================================= */
+
+.prx-plant-ro{
+    background:linear-gradient(135deg,#075985,#0284c7);
+
+    border-color:#075985;
+}
+
+
+/* =========================================================
+   MF - GREEN
+   ========================================================= */
+
+.prx-plant-mf{
+    background:linear-gradient(135deg,#15803d,#22c55e);
+
+    border-color:#15803d;
+}
+
+
+/* =========================================================
+   UF - PURPLE
+   ========================================================= */
+
+.prx-plant-uf{
+    background:linear-gradient(135deg,#6d28d9,#8b5cf6);
+
+    border-color:#6d28d9;
+}
+
+
+/* =========================================================
+   PLANT HOVER
+   ========================================================= */
+
+.prx-plant:hover{
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 10px 24px rgba(15,45,65,.16);
+}
+
+
+/* =========================================================
+   TABLE BOX
+   ========================================================= */
+
+.prx-table-box{
+    background:#ffffff;
+
+    border:1px solid #d9e3e9;
+
+    border-radius:13px;
+
+    box-shadow:
+        0 5px 16px rgba(15,45,65,.08);
+
+    margin-bottom:20px;
+
+    overflow:hidden;
+}
+
+
+/* =========================================================
+   VIEW BAR
+   ========================================================= */
+
+.prx-viewbar{
+    padding:0 16px;
+
+    font-size:13px;
+
+    color:#445b69;
+}
+
+.prx-viewbar:not(:empty){
+    padding:12px 16px;
+
+    border-bottom:1px solid #e1e9ee;
+
+    background:#f3f8fb;
+}
+
+.prx-viewbar a{
+    color:#087f8c;
+
+    font-weight:800;
+
+    text-decoration:none;
+}
+
+
+/* =========================================================
+   TABLE SCROLL
+   ========================================================= */
+
+.prx-table-scroll{
+    overflow:auto;
+
+    max-height:560px;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.prx-table{
+    width:100%;
+
+    border-collapse:collapse;
+
+    min-width:1250px;
+}
+
+
+/* Table cells */
+
+.prx-table th,
+.prx-table td{
+    padding:11px 13px;
+
+    text-align:left;
+
+    vertical-align:top;
+
+    font-size:12px;
+
+    border-bottom:1px solid #e3ebef;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+   ========================================================= */
+
+.prx-table th{
+    position:sticky;
+
+    top:0;
+
+    z-index:1;
+
+    background:linear-gradient(
+        135deg,
+        #075985,
+        #0e7490
+    );
+
+    color:#fff;
+
+    font-weight:800;
+
+    white-space:nowrap;
+}
+
+
+/* Table alternate rows */
+
+.prx-table tbody tr:nth-child(even){
+    background:#f6fafc;
+}
+
+
+/* Clickable rows */
+
+.prx-table tbody tr[data-id],
+.prx-table tbody tr[data-sum]{
+    cursor:pointer;
+}
+
+
+/* Row hover */
+
+.prx-table tbody tr:hover{
+    background:#e5f4f7;
+}
+
+
+/* Empty message */
+
+.prx-empty{
+    padding:30px;
+
+    text-align:center;
+
+    color:#78909c;
+
+    font-weight:600;
+}
+
+
+/* =========================================================
+   STATUS PILLS
+   ========================================================= */
+
+.prx-pill{
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:20px;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    white-space:nowrap;
+
+    background:#edf2f5;
+
+    color:#536773;
+}
+
+.prx-pill.completed{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.prx-pill.inprogress{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.prx-pill.hold{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.prx-pill.notstarted{
+    background:#e5e7eb;
+    color:#4b5563;
+}
+
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+
+.prx-pager{
+    display:flex;
+
+    justify-content:space-between;
+    align-items:center;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    padding:12px 16px;
+
+    font-size:13px;
+
+    color:#445b69;
+
+    border-top:1px solid #e1e9ee;
+}
+
+.prx-pager:empty{
+    display:none;
+}
+
+.prx-pager-buttons{
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+.prx-pager button{
+    border:1px solid #b9ccd8;
+
+    background:#f4f9fc;
+
+    color:#075985;
+
+    border-radius:7px;
+
+    padding:8px 15px;
+
+    font-weight:800;
+
+    cursor:pointer;
+
+    transition:
+        background .15s ease,
+        color .15s ease;
+}
+
+.prx-pager button:hover:not(:disabled){
+    background:#075985;
+
+    color:#fff;
+}
+
+.prx-pager button:disabled{
+    opacity:.45;
+
+    cursor:not-allowed;
+}
+
+
+/* =========================================================
+   MAP BOX
+   ========================================================= */
+
+.prx-map-box{
+    background:#ffffff;
+
+    border:1px solid #d9e3e9;
+
+    border-radius:13px;
+
+    box-shadow:
+        0 5px 16px rgba(15,45,65,.08);
+
+    overflow:hidden;
+}
+
+
+/* Map */
+
+.prx-map{
+    width:100%;
+
+    height:540px;
+}
+
+
+/* Map legend */
+
+.prx-legend{
+    display:flex;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+    padding:11px 16px;
+
+    border-top:1px solid #e1e9ee;
+
+    background:#f7fafc;
+
+    font-size:11px;
+
+    color:#586e7b;
+}
+
+.prx-legend i{
+    display:inline-block;
+
+    width:10px;
+    height:10px;
+
+    margin-right:6px;
+
+    border-radius:50%;
+
+    border:2px solid #fff;
+
+    box-shadow:
+        0 0 0 1px #8797a3;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+   ========================================================= */
+
+.prx-actions{
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin:20px 0 0;
+}
+
+
+/* Base button */
+
+.prx-btn{
+    border:0;
+
+    border-radius:8px;
+
+    padding:11px 19px;
+
+    font-size:14px;
+
+    font-weight:800;
+
+    color:#fff;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 3px 8px rgba(15,45,65,.12);
+
+    transition:
+        filter .15s ease,
+        transform .15s ease,
+        box-shadow .15s ease;
+}
+
+.prx-btn:hover{
+    filter:brightness(.94);
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 6px 14px rgba(15,45,65,.16);
+}
+
+
+/* PDF */
+
+.prx-btn-pdf{
+    background:#b91c1c;
+}
+
+
+/* Print */
+
+.prx-btn-print{
+    background:#087f8c;
+}
+
+
+/* Excel */
+
+.prx-btn-excel{
+    background:#15803d;
+}
+
+
+/* Refresh */
+
+.prx-btn-refresh{
+    background:#475569;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width:1100px){
+
+    .prx-stats{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+
+    .prx-filters{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .prx-plants{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+}
+
+
+@media (max-width:700px){
+
+    .prx-page{
+        padding:5px 3px 25px;
+    }
+
+    .prx-heading{
+        font-size:21px;
+    }
+
+    .prx-subheading{
+        font-size:12px;
+
+        letter-spacing:.5px;
+    }
+
+    .prx-stats{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+
+        gap:10px;
+    }
+
+    .prx-card{
+        padding:15px;
+
+        min-height:75px;
+    }
+
+    .prx-card h3{
+        font-size:25px;
+    }
+
+    .prx-filters{
+        grid-template-columns:1fr;
+
+        gap:10px;
+    }
+
+    .prx-plants{
+        grid-template-columns:1fr;
+
+        gap:10px;
+    }
+
+    .prx-map{
+        height:400px;
+    }
+
+    .prx-btn{
+        flex:1 1 100%;
+    }
+}
+

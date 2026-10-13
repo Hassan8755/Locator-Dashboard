@@ -1,0 +1,278 @@
+
+/* =========================================================
+   SPASIS GIS PROGRESS MONITORING
+   ========================================================= */
+.progress-page{max-width:1450px;
+    margin:0 auto}
+
+    
+.gis-hero{background:linear-gradient(135deg,#0b3d62,#176b87);
+    color:#fff;
+    border-radius:14px;
+    padding:22px 26px;
+    margin-bottom:18px;
+    box-shadow:0 8px 22px rgba(8,45,68,.18)}
+
+
+.gis-hero h1{margin:0 0 6px;
+    font-size:28px}
+
+
+.gis-hero p{margin:0;
+    opacity:.9}
+
+
+.gis-badges{display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:14px}
+
+
+.gis-badge{border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.10);
+    padding:6px 10px;
+    border-radius:20px;font-size:12px}
+
+
+.gis-grid{display:grid;
+    grid-template-columns:minmax(420px,1fr) minmax(420px,1.2fr);
+    gap:18px;align-items:start}
+
+
+.gis-card{background:#fff;
+    border:1px solid #e1e8ef;
+    border-radius:12px;
+    padding:18px;box-shadow:0 4px 14px rgba(22,47,66,.07);
+    margin-bottom:18px}
+
+
+.gis-card h3{margin:0 0 14px;
+    color:#174d6c;
+    font-size:17px}
+
+
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:13px}
+
+
+.form-field label{display:block;
+    font-weight:700;
+    font-size:12px;
+    color:#445463;
+    text-transform:uppercase;
+    letter-spacing:.35px}
+
+
+.form-field input,.form-field select,.form-field textarea{width:100%;
+    box-sizing:border-box;
+    padding:10px 11px;
+    border:1px solid #ccd7e0;
+    border-radius:7px;
+    margin-top:6px;
+    background:#fff;
+    color:#243746}
+
+
+.form-field input[readonly]{background:#f5f8fa}
+
+
+.form-field textarea{min-height:92px;
+    resize:vertical}
+
+
+.full{grid-column:1/-1}
+
+.capture-panel{background:#f3f8fb;
+    border:1px solid #d8e7ef;
+    border-radius:10px;
+    padding:14px}
+
+
+.capture-row{display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap}
+
+
+.capture-btn,.save-btn{border:0;
+    border-radius:7px;
+    padding:11px 16px;
+    cursor:pointer;
+    color:#fff;
+    background:#176b87;
+    font-weight:700}
+
+
+.capture-btn:hover,.save-btn:hover{filter:brightness(.94)}
+
+.capture-btn:disabled,.save-btn:disabled{opacity:.65;cursor:not-allowed}
+
+
+.capture-status{font-size:12px;
+    color:#526474;
+    margin-top:8px}
+
+
+.map-card{padding:0;
+    overflow:hidden}
+
+
+.map-toolbar{padding:14px 16px;
+    border-bottom:1px solid #e3eaf0;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:center}
+
+
+.map-toolbar strong{color:#174d6c}
+
+.map-toolbar span{font-size:12px;
+    color:#6a7885}
+
+#progressMap{height:480px;
+    width:100%}
+
+
+.spatial-grid{display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;margin-top:12px}
+
+
+.spatial-metric{background:#f7fafc;
+    border:1px solid #e1e8ef;
+    border-radius:8px;
+    padding:10px}
+
+
+.spatial-metric small{display:block;
+    color:#71808c;
+    font-size:10px;
+    text-transform:uppercase}
+
+
+.spatial-metric strong{display:block;
+    color:#174d6c;
+    margin-top:4px;
+    font-size:14px}
+
+
+.gis-status{padding:9px 11px;
+    border-radius:7px;
+    font-size:12px;
+    margin-top:10px;
+    background:#f4f6f8;
+    color:#5c6975}
+
+
+.gis-status.ok{background:#e9f7ef;
+    color:#237447}
+
+.gis-status.warn{background:#fff6df;
+    color:#8a6500}
+
+.gis-status.bad{background:#fdecec;
+    color:#a72c2c}
+
+
+.records-card{margin-top:0}
+
+
+.progress-table-wrap{overflow:auto}
+
+.progress-table{width:100%;
+    border-collapse:collapse;
+    min-width:1100px}
+
+.progress-table th,.progress-table td{padding:10px;
+    border-bottom:1px solid #e8edf1;
+    text-align:left;
+    vertical-align:top;
+    font-size:12px}
+
+
+.progress-table th{background:#f3f7fa;
+    color:#3d5262;
+    position:sticky;
+    top:0;
+    z-index:1}
+
+
+.progress-table tr:hover td{background:#fafcfd}
+
+.status-pill{display:inline-block;
+    padding:4px 8px;
+    border-radius:14px;
+    font-size:11px;
+    font-weight:700;
+    background:#eef2f5}
+
+
+.status-pill.completed{background:#e7f6ec;
+    color:#237447}
+
+.status-pill.inprogress{background:#e8f2fb;
+    color:#1c5d86}
+
+.status-pill.hold{background:#fff2d8;
+    color:#8a6500}
+
+.status-pill.notstarted{background:#edf0f2;
+    color:#59656e}
+
+.delete-progress{border:0;
+    background:#c93636;
+    color:#fff;
+    border-radius:5px;
+    padding:6px 9px;
+    cursor:pointer}
+
+
+.empty-progress{padding:25px;
+    color:#788691;
+    text-align:center}
+
+
+.coord-chip{font-family:Consolas,
+    monospace;
+    font-size:11px}
+
+
+.legend{display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    padding:10px 15px;
+    border-top:1px solid #e6edf2;
+    font-size:11px;
+    color:#586a78}
+
+
+.legend-item{display:flex;
+    align-items:center;
+    gap:6px}
+
+
+.dot{width:10px;
+    height:10px;
+    border-radius:50%;
+    display:inline-block;
+    border:2px solid #fff;
+    box-shadow:0 0 0 1px #8797a3}
+
+
+.dot.gps{background:#d43d3d}
+.dot.progress{background:#6f42c1}
+
+
+.bline{width:18px;
+    height:0;
+    display:inline-block;
+    border-top:3px solid #999}
+.bline.division{border-top-color:#0b3d62;
+    border-top-style:dashed}
+
+.bline.district{border-top-color:#d9822b;
+    border-top-style:dashed}
+.bline.tehsil{border-top-color:#1e9e5a}
+@media(max-width:1050px){.gis-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.spatial-grid{grid-template-columns:1fr 1fr}#progressMap{height:380px}}

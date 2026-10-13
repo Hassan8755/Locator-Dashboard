@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}GIS Progress Monitoring | SPASIS{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='progress.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="progress-page">
+
+  <section class="gis-hero">
+    <h1>SPASIS Locator</h1>
+
+    <div class="gis-badges">
+      <span class="gis-badge">🗺️ Spatial Monitoring</span>
+      <span class="gis-badge">📍 GPS Field Capture</span>
+      <span class="gis-badge">📐 Spatial Validation</span>
+      <span class="gis-badge">🌐 WGS 84 / EPSG:4326</span>
+      <span class="gis-badge">📊 Site-wise Progress</span>
+    </div>
+  </section>
+
+  <div class="gis-grid">
+
+    <div>
+      <section class="gis-card">
+        <h3>📍 Site & Administrative Hierarchy</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="pDivision">Division</label>
+            <input id="pDivision" type="text" placeholder="Division likhein" autocomplete="off">
+          </div>
+
+          <div class="form-field">
+            <label for="pDistrict">District</label>
+            <input id="pDistrict" type="text" placeholder="District likhein" autocomplete="off">
+          </div>
+
+          <div class="form-field">
+            <label for="pTehsil">Tehsil</label>
+            <input id="pTehsil" type="text" placeholder="Tehsil likhein" autocomplete="off">
+          </div>
+
+          <div class="form-field">
+            <label for="pPackage">Package</label>
+            <input id="pPackage" type="text" placeholder="Package likhein" autocomplete="off">
+          </div>
+
+          <div class="form-field">
+            <label for="pSite">Site Name</label>
+            <input id="pSite" type="text" placeholder="Site ka naam likhein" autocomplete="off">
+          </div>
+
+          <div class="form-field">
+            <label for="pPlantType">Plant Type</label>
+            <input id="pPlantType" type="text" placeholder="Plant Type likhein" autocomplete="off">
+          </div>
+
+        </div>
+      </section>
+
+      <section class="gis-card">
+        <h3>🛰️ Field GPS Capture</h3>
+        <div class="capture-panel">
+          <div class="capture-row">
+            <button type="button" class="capture-btn" id="captureLocation">📍 Capture Current Location</button>
+            <span id="captureStatus">Enter the site details, then capture the field team's current GPS position.</span>
+          </div>
+          <div class="form-grid" style="margin-top:12px">
+            <div class="form-field">
+              <label for="pLat">Latitude</label>
+              <input id="pLat" readonly placeholder="Not captured">
+            </div>
+            <div class="form-field">
+              <label for="pLng">Longitude</label>
+              <input id="pLng" readonly placeholder="Not captured">
+            </div>
+          </div>
+          <div class="spatial-grid">
+            <div class="spatial-metric"><small>CRS</small><strong>WGS 84</strong></div>
+            <div class="spatial-metric"><small>Accuracy</small><strong id="gpsAccuracy">—</strong></div>
+            <div class="spatial-metric"><small>Captured At</small><strong id="captureTime">—</strong></div>
+          </div>
+          <div id="spatialStatus" class="gis-status">Accuracy check will appear here after GPS capture.</div>
+        </div>
+      </section>
+
+      <section class="gis-card">
+        <h3>📋 Progress Attributes</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="pStatus">Status</label>
+            <select id="pStatus">
+              <option>Not Started</option>
+              <option selected>In Progress</option>
+              <option>Completed</option>
+              <option>On Hold</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="pStart">Start Date</label>
+            <input id="pStart" type="date">
+          </div>
+          <div class="form-field">
+            <label for="pEnd">Expected Completion</label>
+            <input id="pEnd" type="date">
+          </div>
+          <div class="form-field full">
+            <label for="pRemarks">Field Remarks</label>
+            <textarea id="pRemarks" placeholder="Record site observations, implementation issues, access conditions or other GIS-relevant field notes."></textarea>
+          </div>
+          <div class="full">
+            <button class="save-btn" type="submit" form="progressForm">➕ Save Geotagged Progress Record</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <section class="gis-card map-card">
+        <div class="map-toolbar">
+          <strong>🗺️ Spatial Progress Map</strong>
+          <span id="mapHint">Captured field location will appear here</span>
+        </div>
+        <div id="progressMap"></div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot gps"></i> Current field GPS</span>
+          <span class="legend-item"><i class="dot progress"></i> Saved progress point</span>
+          <span class="legend-item"><i class="bline division"></i> Division boundary</span>
+          <span class="legend-item"><i class="bline district"></i> District boundary</span>
+          <span class="legend-item"><i class="bline tehsil"></i> Tehsil boundary</span>
+        </div>
+      </section>
+
+      <section class="gis-card">
+        <h3>📐 Spatial QA / Field Verification</h3>
+        <div class="gis-status" id="qaSummary">
+          Field latitude/longitude are captured from the device GPS. GPS accuracy must be 50 m or better.
+        </div>
+        <div class="spatial-grid">
+          <div class="spatial-metric"><small>Map Projection</small><strong>Geographic</strong></div>
+          <div class="spatial-metric"><small>Coordinate System</small><strong>EPSG:4326</strong></div>
+          <div class="spatial-metric"><small>QA Rule</small><strong>Accuracy ≤ 50 m</strong></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <form id="progressForm" style="display:none"></form>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='script/progress.js') }}"></script>
+{% endblock %}

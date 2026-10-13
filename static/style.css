@@ -1,0 +1,1303 @@
+/* =========================================================
+   PSPA DASHBOARD - COMPLETE STYLE.CSS
+   FINAL ORDER:
+
+   TOP STATS
+   ↓
+   FILTERS
+   ↓
+   RO | MF | UF
+   ↓
+   TABLE / LIST
+   ↓
+   MAP
+   ↓
+   DOWNLOAD PDF | PRINT MAP | IMPORT EXCEL
+========================================================= */
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    padding: 30px;
+    color: #333;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    background: #ffffff;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.10);
+}
+
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+h2 {
+    text-align: center;
+
+    margin-bottom: 22px;
+
+    color: #333;
+
+    font-size: 26px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   TOP STATS
+========================================================= */
+
+.stats {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================================================
+   STAT CARD
+========================================================= */
+
+.card {
+    color: white;
+
+    padding: 20px;
+
+    border-radius: 8px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    min-height: 95px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    transition: 0.3s;
+}
+
+.card h3 {
+    font-size: 28px;
+
+    margin-bottom: 5px;
+
+    font-weight: bold;
+}
+
+.card p {
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   CARD COLORS
+========================================================= */
+
+.card:nth-child(1) {
+    background: #007bff;
+}
+
+.card:nth-child(2) {
+    background: #28a745;
+}
+
+.card:nth-child(3) {
+    background: #ffc107;
+    color: #ffffff;
+}
+
+.card:nth-child(4) {
+    background: #dc3545;
+}
+
+.card:nth-child(5) {
+    background: #6f42c1;
+}
+
+
+/* =========================================================
+   CARD HOVER
+========================================================= */
+
+.card:hover {
+    transform: translateY(-4px);
+}
+
+.card:nth-child(1):hover {
+    background: #0056b3;
+}
+
+.card:nth-child(2):hover {
+    background: #1e7e34;
+}
+
+.card:nth-child(3):hover {
+    background: #e0a800;
+}
+
+.card:nth-child(4):hover {
+    background: #a71d2a;
+}
+
+.card:nth-child(5):hover {
+    background: #59339d;
+}
+
+
+/* =========================================================
+   FILTER SECTION
+========================================================= */
+
+.filters {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 18px;
+
+    align-items: stretch;
+}
+
+
+/* =========================================================
+   FILTER COLUMN
+========================================================= */
+
+.filter-column {
+    width: 100%;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   FILTER BOX
+========================================================= */
+
+.filter-box {
+    width: 100%;
+
+    min-width: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+    padding: 0;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   FILTER TITLE
+========================================================= */
+
+.filter-title {
+    background: #1f4e78;
+
+    color: white;
+
+    padding: 10px 12px;
+
+    text-align: center;
+
+    font-weight: 700;
+
+    font-size: 15px;
+
+    border-radius: 8px 8px 0 0;
+}
+
+
+/* =========================================================
+   SELECT BOX
+========================================================= */
+
+.filter-box select {
+    width: 100%;
+
+    height: 42px;
+
+    padding: 8px 10px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 0 0 8px 8px;
+
+    background: white;
+
+    color: #222;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    outline: none;
+
+    transition: 0.3s;
+}
+
+.filter-box select:hover {
+    border-color: #007bff;
+}
+
+.filter-box select:focus {
+    border-color: #007bff;
+
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.10);
+}
+
+.filter-box select option {
+    background: white;
+    color: #222;
+}
+
+
+/* =========================================================
+   RO / MF / UF
+========================================================= */
+
+/* =========================================================
+   RO / MF / UF - 3 BOXES IN ONE ROW
+========================================================= */
+
+.plant-summary-row {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   EACH PLANT BOX
+========================================================= */
+
+.plant-summary-box {
+    width: 100%;
+
+    min-height: 90px;
+
+    padding: 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 8px;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+    transition: 0.3s;
+}
+
+.plant-summary-box:hover {
+    transform: translateY(-3px);
+}
+
+
+/* =========================================================
+   RO BOX
+========================================================= */
+
+.plant-ro {
+    background: #e9f5e8;
+
+    border: 1px solid #a5d6a7;
+}
+
+
+/* =========================================================
+   MF BOX
+========================================================= */
+
+.plant-mf {
+    background: #efe3fd;
+
+    border: 1px solid #90caf9;
+}
+
+
+/* =========================================================
+   UF BOX
+========================================================= */
+
+.plant-uf {
+    background: #fff3e0;
+
+    border: 1px solid #ffcc80;
+}
+
+
+/* =========================================================
+   PLANT ITEM
+   Heading ऊपर
+   Count नीचे
+========================================================= */
+
+.plant-item {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+}
+
+
+/* =========================================================
+   PLANT HEADING
+========================================================= */
+
+.plant-item span {
+    font-size: 16px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   RO HEADING
+========================================================= */
+
+.plant-ro .plant-item span {
+    color: #2e7d32;
+}
+
+
+/* =========================================================
+   MF HEADING
+========================================================= */
+
+.plant-mf .plant-item span {
+    color: #1565c0;
+}
+
+
+/* =========================================================
+   UF HEADING
+========================================================= */
+
+.plant-uf .plant-item span {
+    color: #ef6c00;
+}
+
+
+/* =========================================================
+   COUNT
+========================================================= */
+
+.plant-item strong {
+    font-size: 26px;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   RO COUNT
+========================================================= */
+
+.plant-ro .plant-item strong {
+    color: #2e7d32;
+}
+
+
+/* =========================================================
+   MF COUNT
+========================================================= */
+
+.plant-mf .plant-item strong {
+    color: #1565c0;
+}
+
+
+/* =========================================================
+   UF COUNT
+========================================================= */
+
+.plant-uf .plant-item strong {
+    color: #ef6c00;
+}
+
+
+/* =========================================================
+   HIDDEN EXCEL INPUT
+========================================================= */
+
+#excelFile {
+    display: none;
+}
+
+
+/* =========================================================
+   TABLE CONTAINER
+========================================================= */
+
+.table-container {
+    width: 100%;
+
+    overflow-x: auto;
+
+    margin-top: 5px;
+
+    border-radius: 6px;
+}
+
+
+/* =========================================================
+   DATA TABLE
+========================================================= */
+
+.data-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    background: #ffffff;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.data-table th {
+    background: #007bff;
+
+    color: #ffffff;
+
+    padding: 12px 10px;
+
+    text-align: center;
+
+    border: 1px solid #ddd;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLE DATA
+========================================================= */
+
+.data-table td {
+    padding: 10px;
+
+    text-align: center;
+
+    border: 1px solid #ddd;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLE HOVER
+========================================================= */
+
+.data-table tbody tr:hover {
+    background: #f1f5ff;
+}
+
+
+/* =========================================================
+   FIRST COLUMN
+========================================================= */
+
+.data-table th:first-child,
+.data-table td:first-child {
+    width: 45px;
+}
+
+
+/* =========================================================
+   MAP
+========================================================= */
+
+#map {
+    width: 100%;
+
+    height: 400px;
+
+    margin-top: 20px;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+    border: 1px solid #ddd;
+}
+
+
+/* =========================================================
+   BOTTOM ACTION BUTTONS
+
+   IMPORTANT:
+   MAP KE BILKUL BAAD
+
+   3 BUTTONS:
+   Download List PDF
+   Print Map
+   Import Excel
+
+   BILKUL CENTER
+========================================================= */
+
+.map-action-buttons {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: row;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    margin-bottom: 0;
+
+    padding: 0;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   ALL 3 BUTTONS
+========================================================= */
+
+.map-action-buttons button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: auto;
+
+    min-width: 115px;
+
+    height: 34px;
+
+    padding: 5px 10px;
+
+    margin: 0;
+
+    border: none;
+
+    border-radius: 5px;
+
+    color: #ffffff;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition: 0.2s;
+}
+
+
+/* =========================================================
+   DOWNLOAD PDF
+========================================================= */
+
+.download-pdf-btn {
+    background: #dc3545;
+}
+
+.download-pdf-btn:hover {
+    background: #a71d2a;
+}
+
+
+/* =========================================================
+   PRINT MAP
+========================================================= */
+
+.print-map-btn {
+    background: #28a745;
+}
+
+.print-map-btn:hover {
+    background: #1e7e34;
+}
+
+
+/* =========================================================
+   IMPORT EXCEL
+========================================================= */
+
+.import-excel-btn {
+    background: #007bff;
+}
+
+.import-excel-btn:hover {
+    background: #0056b3;
+}
+
+
+/* =========================================================
+   DISABLED BUTTON
+========================================================= */
+
+.map-action-buttons button:disabled {
+    background: #999;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+#tablePagination {
+    width: 100%;
+
+    margin-top: 15px;
+}
+
+.pagination-wrapper {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 12px 5px;
+
+    flex-wrap: wrap;
+}
+
+.pagination-info {
+    font-size: 14px;
+
+    color: #555;
+}
+
+.pagination-buttons {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.pagination-buttons button {
+    padding: 8px 16px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+.pagination-buttons button:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+}
+
+.page-number {
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BOUNDARY
+========================================================= */
+
+#boundary {
+    margin-top: 0;
+
+    padding: 0;
+
+    background: transparent;
+
+    border-radius: 6px;
+
+    list-style: none;
+}
+
+#boundary li {
+    padding: 8px;
+
+    border-bottom: 1px solid #ddd;
+
+    font-size: 14px;
+}
+
+#boundary li:last-child {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    body {
+        padding: 20px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    /* STATS */
+
+    .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* FILTERS */
+
+    .filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    /* PLANT */
+
+    .plant-summary-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    /* BUTTONS - STILL CENTER */
+
+    .map-action-buttons {
+        width: 100%;
+
+        display: flex;
+
+        flex-direction: row;
+
+        justify-content: center;
+
+        align-items: center;
+
+        gap: 8px;
+    }
+
+    .map-action-buttons button {
+        min-width: 110px;
+
+        height: 34px;
+
+        font-size: 11px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+
+        border-radius: 8px;
+    }
+
+    /* HEADING */
+
+    h2 {
+        font-size: 22px;
+
+        margin-bottom: 18px;
+    }
+
+    /* STATS */
+
+    .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+
+        margin-bottom: 18px;
+    }
+
+    .card {
+        min-height: 85px;
+
+        padding: 15px;
+    }
+
+    .card h3 {
+        font-size: 24px;
+    }
+
+    /* FILTERS */
+
+    .filters {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    /* PLANT */
+
+    .plant-summary-row {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    .plant-summary-box {
+        min-height: 55px;
+
+        padding: 8px;
+    }
+
+    /* MAP */
+
+    #map {
+        height: 350px;
+
+        margin-top: 18px;
+    }
+
+    /* BUTTONS */
+
+    .map-action-buttons {
+        width: 100%;
+
+        display: flex;
+
+        flex-direction: row;
+
+        justify-content: center;
+
+        align-items: center;
+
+        gap: 6px;
+
+        flex-wrap: wrap;
+
+        margin-top: 10px;
+    }
+
+    .map-action-buttons button {
+        min-width: 100px;
+
+        height: 32px;
+
+        padding: 4px 8px;
+
+        font-size: 10px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 12px;
+    }
+
+    .plant-summary-row {
+        gap: 8px;
+    }
+
+    .plant-summary-box {
+        padding: 6px;
+    }
+
+    .plant-item {
+        gap: 8px;
+    }
+
+    .plant-item span {
+        font-size: 14px;
+    }
+
+    .plant-item strong {
+        font-size: 18px;
+    }
+
+    /* BUTTONS */
+
+    .map-action-buttons {
+        width: 100%;
+
+        display: flex;
+
+        flex-direction: row;
+
+        justify-content: center;
+
+        align-items: center;
+
+        gap: 5px;
+
+        flex-wrap: wrap;
+    }
+
+    .map-action-buttons button {
+        min-width: 90px;
+
+        height: 30px;
+
+        padding: 4px 7px;
+
+        font-size: 9px;
+    }
+
+    /* MAP */
+
+    #map {
+        height: 300px;
+    }
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+
+    body {
+        background: #ffffff;
+
+        padding: 0;
+    }
+
+    .container {
+        max-width: 100%;
+
+        box-shadow: none;
+
+        padding: 10px;
+    }
+
+    /* HIDE BUTTONS */
+
+    .map-action-buttons {
+        display: none;
+    }
+
+    .plant-summary-row {
+        display: grid;
+    }
+
+    #map {
+        height: 500px;
+    }
+}
+/* =========================================================
+   SIDEBAR / BASE LAYOUT
+/* =========================================================
+   SIDEBAR / BASE LAYOUT
+========================================================= */
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    margin: -30px;
+}
+
+.sidebar {
+    width: 245px;
+    background: #1f4e78;
+    color: #fff;
+
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    z-index: 10000;
+
+    padding: 18px 14px;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 8px 24px;
+    border-bottom: 1px solid rgba(255,255,255,.18);
+}
+
+.sidebar-brand strong {
+    display: block;
+    font-size: 21px;
+}
+
+.sidebar-brand small {
+    display: block;
+    opacity: .8;
+    margin-top: 3px;
+}
+
+.brand-mark {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 9px;
+
+    background: #fff;
+    color: #1f4e78;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 800;
+}
+
+.sidebar-nav {
+    padding-top: 18px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    color: #fff;
+
+    text-decoration: none;
+
+    padding: 13px 14px;
+
+    border-radius: 7px;
+
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+    touch-action: manipulation;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background: rgba(255,255,255,.18);
+}
+
+.main-content {
+    width: calc(100% - 245px);
+
+    margin-left: 245px;
+
+    padding: 30px;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   SIDEBAR TOGGLE BUTTON
+========================================================= */
+
+.sidebar-toggle {
+    display: none;
+
+    position: fixed;
+
+    top: 55px;
+    left: 12px;
+
+    width: 45px;
+    height: 45px;
+
+    z-index: 11001;
+
+    background: #1f4e78;
+    color: #fff;
+
+    border: none;
+    border-radius: 7px;
+
+    font-size: 24px;
+    line-height: 45px;
+
+    text-align: center;
+
+    padding: 0;
+
+    cursor: pointer;
+    touch-action: manipulation;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   MOBILE SIDEBAR
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .app-shell {
+        margin: -30px;
+    }
+
+    .sidebar {
+        width: 280px;
+
+        transform: translateX(-100%);
+
+        transition: transform 0.25s ease;
+
+        z-index: 11000;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 105px 15px 20px;
+    }
+
+    .sidebar-toggle {
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREEN
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .sidebar {
+        width: 260px;
+    }
+
+    .sidebar-toggle {
+        top: 55px;
+        left: 10px;
+
+        width: 43px;
+        height: 43px;
+
+        line-height: 43px;
+
+        font-size: 22px;
+    }
+}
+
+/* Authenticated user view: only SPASIS Locator is exposed. */
+
+.spasis-user-content{min-height:100vh;width:100%;padding:22px 24px}
+.spasis-user-content .progress-page{max-width:1500px;margin:0 auto}
+@media(max-width:700px){.spasis-user-content{padding:12px}}
+.nav-logout{margin-top:auto}

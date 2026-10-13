@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Add User | SPASIS{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='admin_users.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="au-page">
+    <h2 class="au-title">User Management</h2>
+    <p class="au-sub">Add new users and manage who can sign in to SPASIS.</p>
+
+    {% if error %}<div class="au-alert au-err">{{ error }}</div>{% endif %}
+    {% if success %}<div class="au-alert au-ok">{{ success }}</div>{% endif %}
+
+    <section class="au-card">
+        <h3>Add New User</h3>
+        <form method="POST" action="{{ url_for('admin_users_add') }}" autocomplete="off">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <div class="au-grid">
+                <div>
+                    <label for="au_username">Username</label>
+                    <input id="au_username" name="username" type="text" required minlength="3" maxlength="50" autocomplete="off">
+                </div>
+                <div>
+                    <label for="au_role">Role</label>
+                    <select id="au_role" name="role">
+                        <option value="user">User (SPASIS Locator only)</option>
+                        <option value="admin">Admin (full access)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="au_password">Password (min {{ min_password }} characters)</label>
+                    <input id="au_password" name="password" type="password" required minlength="{{ min_password }}" autocomplete="new-password">
+                </div>
+                <div>
+                    <label for="au_confirm">Confirm Password</label>
+                    <input id="au_confirm" name="confirm_password" type="password" required minlength="{{ min_password }}" autocomplete="new-password">
+                </div>
+            </div>
+            <button type="submit" class="au-btn">Add User</button>
+        </form>
+    </section>
+
+    <section class="au-card">
+        <h3>All Users ({{ users|length }})</h3>
+        <div class="au-table-wrap">
+        <table class="au-table">
+            <thead>
+                <tr><th>#</th><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ u.username }}{% if u.username == current_username %} <em>(you)</em>{% endif %}</td>
+                    <td><span class="au-pill au-{{ u.role }}">{{ u.role }}</span></td>
+                    <td>{% if u.is_active %}<span class="au-pill au-on">Active</span>{% else %}<span class="au-pill au-off">Disabled</span>{% endif %}</td>
+                    <td>{{ (u.created_at|string)[:10] if u.created_at else '' }}</td>
+                    <td class="au-actions">
+                        <form method="POST" action="{{ url_for('admin_users_password', uid=u.id) }}" class="au-inline">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <input type="password" name="password" placeholder="New password" minlength="{{ min_password }}" required autocomplete="new-password">
+                            <button type="submit" class="au-btn au-small">Reset</button>
+                        </form>
+                        {% if u.username != current_username %}
+                        <form method="POST" action="{{ url_for('admin_users_toggle', uid=u.id) }}" class="au-inline">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="au-btn au-small au-gray">{{ 'Disable' if u.is_active else 'Enable' }}</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_users_delete', uid=u.id) }}" class="au-inline" onsubmit="return confirm('Delete user {{ u.username|e }}?');">
+                            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                            <button type="submit" class="au-btn au-small au-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

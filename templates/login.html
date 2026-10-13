@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SPASIS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-card">
+        <div class="login-logo">SP</div>
+        <div class="login-brand">SPASIS</div>
+        <div class="login-subtitle">Spatial Information System</div>
+
+        <div class="login-heading">User Login</div>
+        <p class="login-note">Sign in to access the SPASIS Locator.</p>
+
+        {% if error %}
+        <div class="login-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}" autocomplete="on">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter username" autocomplete="username" required autofocus>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="login-footer">GIS • GPS • Mapping • Field QA</div>
+    </div>
+</body>
+</html>

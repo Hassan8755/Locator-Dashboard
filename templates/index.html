@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% block title %}PSPAS Dashboard{% endblock %}
+{% block content %}
+<div class="container">
+
+
+<!-- =====================================================
+     PAGE HEADING
+====================================================== -->
+
+<h2>
+    SAAF PANI AUTHORITY SPATIAL INFORMATION SYSTEM (SPASIS) Dashboard
+</h2>
+
+
+<!-- =====================================================
+     TOP STATS
+     Division | District | Tehsil | NA | PP
+====================================================== -->
+
+<div class="stats">
+
+
+    <!-- Division -->
+
+    <div class="card"
+         onclick="loadByType('division')">
+
+         <p>Divisions</p>
+
+        <h3 id="divisionCount">0</h3>
+
+        
+
+    </div>
+
+
+    <!-- District -->
+
+    <div class="card"
+         onclick="loadByType('district')">
+
+         <p>Districts</p>
+
+        <h3 id="districtCount">0</h3>
+
+
+    </div>
+
+
+    <!-- Tehsil -->
+
+    <div class="card"
+         onclick="loadByType('tehsil')">
+
+         <p>Tehsils</p>
+
+        <h3 id="tehsilCount">0</h3>
+
+
+    </div>
+
+
+    <!-- NA -->
+
+    <div class="card"
+         onclick="loadByType('na')">
+
+         <p>NA</p>
+
+        <h3 id="naCount">0</h3>
+
+
+    </div>
+
+
+    <!-- PP -->
+
+    <div class="card"
+         onclick="loadByType('pp')">
+
+         <p>PP</p>
+
+        <h3 id="ppCount">0</h3>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     FILTERS
+     Division | District | Tehsil | NA | PP
+====================================================== -->
+
+<div class="filters">
+
+
+    <!-- =================================================
+         DIVISION
+    ================================================== -->
+
+    <div class="filter-column">
+
+        <div class="filter-box">
+
+            <div class="filter-title">
+                Division
+            </div>
+
+            <select
+                id="division"
+                onchange="loadDistrict(); loadMapBoundaries();">
+
+                <option value="">
+                    Select Division
+                </option>
+
+                {% for d in divisions %}
+
+                <option value="{{ d }}">
+                    {{ d }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         DISTRICT
+    ================================================== -->
+
+    <div class="filter-column">
+
+        <div class="filter-box">
+
+            <div class="filter-title">
+                District
+            </div>
+
+            <select
+                id="district"
+                onchange="loadTehsil(); loadMapBoundaries();">
+
+                <option value="">
+                    Select District
+                </option>
+
+                {% for d in districts %}
+
+                <option value="{{ d }}">
+                    {{ d }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         TEHSIL
+    ================================================== -->
+
+    <div class="filter-column">
+
+        <div class="filter-box">
+
+            <div class="filter-title">
+                Tehsil
+            </div>
+
+            <select
+                id="tehsil"
+                onchange="loadNA(); loadMapBoundaries();">
+
+                <option value="">
+                    Select Tehsil
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         NA
+    ================================================== -->
+
+    <div class="filter-column">
+
+        <div class="filter-box">
+
+            <div class="filter-title">
+                NA
+            </div>
+
+            <select
+                id="na"
+                onchange="loadPP(); updateNACount(); loadMapBoundaries();">
+
+                <option value="">
+                    Select NA
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         PP
+    ================================================== -->
+
+    <div class="filter-column">
+
+        <div class="filter-box">
+
+            <div class="filter-title">
+                PP
+            </div>
+
+            <select
+                id="pp"
+                onchange="loadBoundary(); updatePPCount(); loadMapBoundaries();">
+
+                <option value="">
+                    Select PP
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     RO / MF / UF
+     
+     IMPORTANT:
+     Ye TABLE/LIST ke bilkul upar hain.
+     Ye MAP ke neeche nahi hain.
+     
+     3 SEPARATE BOXES
+====================================================== -->
+
+<div class="plant-summary-row">
+
+    <div class="plant-summary-box plant-ro">
+        <div class="plant-item">
+            <span>Reverse Osmosis (RO)</span>
+            <strong id="plantROCount">0</strong>
+        </div>
+    </div>
+
+    <div class="plant-summary-box plant-mf">
+        <div class="plant-item">
+            <span>Media Filtration (MF)</span>
+            <strong id="plantMFCount">0</strong>
+        </div>
+    </div>
+
+    <div class="plant-summary-box plant-uf">
+        <div class="plant-item">
+            <span>Ultra Filtration (UF)</span>
+            <strong id="plantUFCount">0</strong>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     HIDDEN EXCEL INPUT
+====================================================== -->
+
+<input
+    type="file"
+    id="excelFile"
+    accept=".xlsx,.xls"
+    style="display:none"
+    onchange="uploadExcel()"
+>
+
+
+
+<!-- =====================================================
+     RESULT TABLE / LIST
+====================================================== -->
+
+<div class="table-container">
+
+    <table class="data-table">
+
+        <thead>
+
+            <tr>
+
+                <th>#</th>
+
+                <th>Division</th>
+
+                <th>District</th>
+
+                <th>Tehsil</th>
+
+                <th>Site Name</th>
+
+                <th>Executing Agency</th>
+                
+                <th>Installation</th>
+
+                <th>NA</th>
+
+                <th>PP</th>
+
+                <th>Plant Type</th>
+
+                <th>Category</th>
+
+                <th>Latitude</th>
+
+                <th>Longitude</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody id="boundary">
+
+            <tr>
+
+                <td colspan="13">
+
+                    Please select a Division
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+
+    <!-- PAGINATION -->
+
+    <div id="pagination"
+         class="pagination">
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MAP
+====================================================== -->
+
+<div id="map"></div>
+
+
+
+<!-- =====================================================
+     ACTION BUTTONS
+     
+     IMPORTANT:
+     Ye 3 buttons MAP ke neeche hain.
+     
+     Shapefile button removed.
+====================================================== -->
+
+<div class="map-action-buttons">
+
+
+    <!-- =================================================
+         DOWNLOAD LIST PDF
+    ================================================== -->
+
+    <button
+        class="download-pdf-btn"
+        onclick="downloadListPDF()">
+
+        📄 Download List PDF
+
+    </button>
+
+
+
+    <!-- =================================================
+         PRINT MAP
+    ================================================== -->
+
+    <button
+        class="print-map-btn"
+        onclick="printMap()">
+
+        🖨️ Print Map
+
+    </button>
+
+
+
+    <!-- =================================================
+         IMPORT EXCEL
+    ================================================== -->
+
+    <button
+        class="import-excel-btn"
+        onclick="openExcelImport()">
+
+        📊 Import Excel
+
+    </button>
+
+</div>
+
+
+</div>
+{% endblock %}

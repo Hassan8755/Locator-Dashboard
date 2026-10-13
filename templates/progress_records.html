@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}SPASIS Progress Records{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='progress_records.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="prx-page">
+
+
+<!-- =====================================================
+     PAGE HEADING
+====================================================== -->
+
+<h2 class="prx-heading">Project Locator</h2>
+<h3 class="prx-subheading">SAAF PANI AUTHORITY SPATIAL INFORMATION SYSTEM (SPASIS)</h3>
+
+
+
+<!-- =====================================================
+     TOP STATS
+     Division | District | Tehsil | Package | Records
+====================================================== -->
+
+<div class="prx-stats" id="prxStats">
+
+     <div class="prx-card" data-summary="records">
+        <p>Total Records</p>
+        <h3 id="prxCntRecords">0</h3>
+    </div>
+
+    <div class="prx-card" data-summary="division">
+        <p>Divisions</p>
+        <h3 id="prxCntDivision">0</h3>
+    </div>
+
+    <div class="prx-card" data-summary="district">
+        <p>Districts</p>
+        <h3 id="prxCntDistrict">0</h3>
+    </div>
+
+    <div class="prx-card" data-summary="tehsil">
+        <p>Tehsils</p>
+        <h3 id="prxCntTehsil">0</h3>
+    </div>
+
+    <div class="prx-card" data-summary="package_name">
+        <p>Package</p>
+        <h3 id="prxCntPackage">0</h3>
+    </div>
+
+
+</div>
+
+
+<!-- =====================================================
+     FILTERS
+     Division | District | Tehsil | Package
+====================================================== -->
+
+<div class="prx-filters">
+
+    <div class="prx-filter-box">
+        <div class="prx-filter-title">Division</div>
+        <select id="prxDivision">
+            <option value="">Select Division</option>
+        </select>
+    </div>
+
+    <div class="prx-filter-box">
+        <div class="prx-filter-title">District</div>
+        <select id="prxDistrict">
+            <option value="">Select District</option>
+        </select>
+    </div>
+
+    <div class="prx-filter-box">
+        <div class="prx-filter-title">Tehsil</div>
+        <select id="prxTehsil">
+            <option value="">Select Tehsil</option>
+        </select>
+    </div>
+
+    <div class="prx-filter-box">
+        <div class="prx-filter-title">Package</div>
+        <select id="prxPackage">
+            <option value="">Select Package</option>
+        </select>
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     RO / MF / UF
+====================================================== -->
+
+<div class="prx-plants">
+
+    <div class="prx-plant prx-plant-ro">
+        <span>Reverse Osmosis (RO)</span>
+        <strong id="prxPlantRO">0</strong>
+    </div>
+
+    <div class="prx-plant prx-plant-mf">
+        <span>Media Filtration (MF)</span>
+        <strong id="prxPlantMF">0</strong>
+    </div>
+
+    <div class="prx-plant prx-plant-uf">
+        <span>Ultra Filtration (UF)</span>
+        <strong id="prxPlantUF">0</strong>
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     RESULT TABLE / LIST
+====================================================== -->
+
+<div class="prx-table-box" id="prxRecordsBox">
+
+    <div class="prx-viewbar" id="prxViewBar"></div>
+
+    <div class="prx-table-scroll">
+        <table class="prx-table">
+            <thead id="prxHead"></thead>
+            <tbody id="prxBody">
+                <tr><td class="prx-empty">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="prx-pager" id="prxPager"></div>
+
+</div>
+
+
+<!-- =====================================================
+     MAP
+====================================================== -->
+
+<div class="prx-map-box">
+    <div id="prxMap" class="prx-map"></div>
+
+    <div class="prx-legend">
+        <span><i style="background:#237447"></i>Completed</span>
+        <span><i style="background:#1c5d86"></i>In Progress</span>
+        <span><i style="background:#d9822b"></i>On Hold</span>
+        <span><i style="background:#8797a3"></i>Not Started</span>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     ACTION BUTTONS
+====================================================== -->
+
+<div class="prx-actions">
+    <button type="button" class="prx-btn prx-btn-pdf" id="prxBtnPDF">📄 Download List PDF</button>
+    <button type="button" class="prx-btn prx-btn-print" id="prxBtnPrint">🖨️ Print Map</button>
+    <button type="button" class="prx-btn prx-btn-excel" id="prxBtnCSV">📊 Export Excel (CSV)</button>
+    <button type="button" class="prx-btn prx-btn-refresh" id="prxBtnRefresh">🔄 Refresh</button>
+</div>
+
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='script/progress_records.js') }}"></script>
+{% endblock %}

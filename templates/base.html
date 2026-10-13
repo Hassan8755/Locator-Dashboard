@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SPASIS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+   
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+{% if session.get('user_logged_in') %}
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-mark">SP</div>
+            <div>
+                <strong>SPASIS</strong>
+                <small>{% if session.get('role') == 'admin' %}Admin Panel{% else %}User Panel{% endif %}</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+                <span>📊</span><span>Dashboard</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('progress') }}" class="nav-item {% if request.endpoint == 'progress' %}active{% endif %}">
+                <span>📍</span><span>SPASIS Locator</span>
+            </a>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('progress_records') }}" class="nav-item {% if request.endpoint == 'progress_records' %}active{% endif %}">
+                <span>📋</span><span>Project Locator</span>
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="nav-item {% if request.endpoint == 'admin_users' %}active{% endif %}">
+                <span>👤</span><span>Add User</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="nav-item nav-logout">
+                <span>⏻</span><span>Logout ({{ session.get('username') }})</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+{% else %}
+    <main class="main-content">
+        {% block content_anon %}{% endblock %}
+    </main>
+{% endif %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}
+</body>
+</html>
