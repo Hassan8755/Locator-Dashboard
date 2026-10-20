@@ -28,32 +28,32 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="pDivision">Division</label>
-            <input id="pDivision" type="text" placeholder="Division likhein" autocomplete="off">
+            <input id="pDivision" type="text" placeholder="Enter Division" autocomplete="off">
           </div>
 
           <div class="form-field">
             <label for="pDistrict">District</label>
-            <input id="pDistrict" type="text" placeholder="District likhein" autocomplete="off">
+            <input id="pDistrict" type="text" placeholder="Enter District" autocomplete="off">
           </div>
 
           <div class="form-field">
             <label for="pTehsil">Tehsil</label>
-            <input id="pTehsil" type="text" placeholder="Tehsil likhein" autocomplete="off">
+            <input id="pTehsil" type="text" placeholder="Enter Tehsil" autocomplete="off">
           </div>
 
           <div class="form-field">
             <label for="pPackage">Package</label>
-            <input id="pPackage" type="text" placeholder="Package likhein" autocomplete="off">
+            <input id="pPackage" type="text" placeholder="Enter Package" autocomplete="off">
           </div>
 
           <div class="form-field">
             <label for="pSite">Site Name</label>
-            <input id="pSite" type="text" placeholder="Site ka naam likhein" autocomplete="off">
+            <input id="pSite" type="text" placeholder="Enter Site" autocomplete="off">
           </div>
 
           <div class="form-field">
             <label for="pPlantType">Plant Type</label>
-            <input id="pPlantType" type="text" placeholder="Plant Type likhein" autocomplete="off">
+            <input id="pPlantType" type="text" placeholder="Enter Plant" autocomplete="off">
           </div>
 
         </div>
@@ -82,6 +82,23 @@
             <div class="spatial-metric"><small>Captured At</small><strong id="captureTime">—</strong></div>
           </div>
           <div id="spatialStatus" class="gis-status">Accuracy check will appear here after GPS capture.</div>
+
+          <div class="photo-panel">
+             <div class="capture-row">
+               <button type="button" class="capture-btn" id="openCamera">📷 Capture Site Photo</button>
+               <span id="photoStatus">Pehle GPS capture karein, phir photo lein.</span>
+             </div>
+
+             <div id="cameraBox" style="display:none">
+               <video id="camVideo" autoplay playsinline muted></video>
+               <div class="capture-row">
+                 <button type="button" class="capture-btn" id="snapPhoto">📸 Take Photo</button>
+                 <button type="button" class="capture-btn" id="closeCamera">✖ Close Camera</button>
+               </div>
+             </div>
+           
+              <div id="photoGallery" class="photo-grid"></div>
+           </div>
         </div>
       </section>
 

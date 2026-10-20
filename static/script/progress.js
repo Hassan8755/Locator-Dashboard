@@ -172,7 +172,7 @@ function updateSpatialQA(acc) {
 }
 
 captureLocationBtn.addEventListener('click', () => {
-  if (!site.value.trim()) { alert('Pehle Site Name likhein.'); return; }
+  if (!site.value.trim()) { alert('Please enter the sitename first.'); return; }
   if (!navigator.geolocation) { captureStatus.textContent = 'Is browser me geolocation support nahi hai.'; return; }
   captureStatus.textContent = '📍 High-accuracy GPS capture ho raha hai...';
   captureLocationBtn.disabled = true;
@@ -187,9 +187,9 @@ captureLocationBtn.addEventListener('click', () => {
     updateSpatialQA(acc);
   }, err => {
     const messages = {
-      1:'Location permission deny ho gayi. Location access allow karein.',
-      2:'Location available nahi. GPS/location services check karein.',
-      3:'Location request time out ho gayi. Dobara try karein.'
+      1: 'Location permission was denied. Please allow location access.',
+      2: 'Location is unavailable. Please check your GPS/location services.',
+      3: 'The location request timed out. Please try again.'
     };
     captureStatus.textContent = '✕ ' + (messages[err.code] || 'Location capture nahi ho saki.');
     captureLocationBtn.disabled = false;
@@ -262,3 +262,89 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
 });
 
 initProgressMap();
+
+
+// image code start
+(function () {
+  const $ = id => document.getElementById(id);
+  const video = $('camVideo'), box = $('cameraBox'), status = $('photoStatus');
+  let stream = null;
+  const photos = [];
+  window.progressPhotos = photos;            // save karte waqt isay payload mein bhejein
+
+  async function openCamera() {
+    if (!$('pLat').value || !$('pLng').value) {
+      status.textContent = '⚠️ Pehle "Capture Current Location" dabayein.';
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      box.style.display = 'block';
+      status.textContent = 'Back camera ON hai.';
+    } catch (e) {
+      status.textContent = '❌ Camera open nahi hua: ' + e.message;
+    }
+  }
+
+  function closeCamera() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    box.style.display = 'none';
+  }
+
+  function snap() {
+    if (!video.videoWidth) return;
+    const lat = $('pLat').value, lng = $('pLng').value;
+    const acc = $('gpsAccuracy').textContent;
+    const time = new Date().toLocaleString();
+
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    // Geotag stamp image ke andar
+    const lines = [`Lat: ${lat}  Lng: ${lng}`, `Acc: ${acc}  ${time}`,
+                   `${$('pSite').value || ''} ${$('pPackage').value || ''}`.trim()];
+    const fs = Math.max(16, Math.round(c.width / 45));
+    ctx.font = `bold ${fs}px sans-serif`;
+    const bh = lines.length * (fs + 6) + 12;
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillRect(0, c.height - bh, c.width, bh);
+    ctx.fillStyle = '#fff';
+    lines.forEach((t, i) => ctx.fillText(t, 10, c.height - bh + (i + 1) * (fs + 6)));
+
+    const photo = {
+      dataUrl: c.toDataURL('image/jpeg', 0.85),
+      lat: parseFloat(lat), lng: parseFloat(lng),
+      accuracy: acc, capturedAt: new Date().toISOString()
+    };
+    photos.push(photo);
+    renderGallery();
+    status.textContent = `✅ ${photos.length} photo capture hui (geotagged).`;
+  }
+
+  function renderGallery() {
+    const g = $('photoGallery');
+    g.innerHTML = '';
+    photos.forEach((p, i) => {
+      const d = document.createElement('div');
+      d.className = 'photo-item';
+      d.innerHTML = `<img src="${p.dataUrl}" alt="Site photo ${i + 1}"><button type="button">×</button>`;
+      d.querySelector('button').onclick = () => { photos.splice(i, 1); renderGallery(); };
+      g.appendChild(d);
+    });
+  }
+
+  $('openCamera').addEventListener('click', openCamera);
+  $('snapPhoto').addEventListener('click', snap);
+  $('closeCamera').addEventListener('click', closeCamera);
+  window.addEventListener('pagehide', closeCamera);
+})();
+
+
+// image code end

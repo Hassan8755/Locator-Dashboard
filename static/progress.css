@@ -276,3 +276,13 @@
 .bline.tehsil{border-top-color:#1e9e5a}
 @media(max-width:1050px){.gis-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.spatial-grid{grid-template-columns:1fr 1fr}#progressMap{height:380px}}
+
+
+
+.photo-panel{margin-top:14px}
+#camVideo{width:100%;max-height:340px;background:#000;border-radius:10px;margin:10px 0}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
+.photo-item{position:relative}
+.photo-item img{width:100%;border-radius:8px;display:block}
+.photo-item button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;
+  width:22px;height:22px;background:#c0392b;color:#fff;cursor:pointer}
