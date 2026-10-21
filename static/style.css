@@ -1301,3 +1301,11 @@ h2 {
 .spasis-user-content .progress-page{max-width:1500px;margin:0 auto}
 @media(max-width:700px){.spasis-user-content{padding:12px}}
 .nav-logout{margin-top:auto}
+
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: block;
+}

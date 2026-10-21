@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | SPASIS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='spasis-icon-512.png') }}">
 </head>
 <body class="login-page">
     <div class="login-card">
-        <div class="login-logo">SP</div>
-        <div class="login-brand">SPASIS</div>
-        <div class="login-subtitle">Spatial Information System</div>
+        <img src="{{ url_for('static', filename='spasis-logo.png') }}" alt="SPASIS - Spatial Information System" class="login-logo-full">
 
         <div class="login-heading">User Login</div>
         <p class="login-note">Sign in to access the SPASIS Locator.</p>

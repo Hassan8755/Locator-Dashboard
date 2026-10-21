@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SPASIS{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='spasis-icon-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='spasis-icon-512.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-   
 
     {% block head_extra %}{% endblock %}
 </head>
@@ -18,7 +19,7 @@
 <div class="app-shell">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-mark">SP</div>
+            <img src="{{ url_for('static', filename='spasis-icon-512.png') }}" alt="SPASIS" class="brand-logo">
             <div>
                 <strong>SPASIS</strong>
                 <small>{% if session.get('role') == 'admin' %}Admin Panel{% else %}User Panel{% endif %}</small>

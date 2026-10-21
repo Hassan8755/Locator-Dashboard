@@ -27,3 +27,13 @@ body.login-page{
 .login-card button:hover{background:#125970}
 .login-error{background:#fff0f0;border:1px solid #efcaca;color:#a52b2b;padding:10px 12px;border-radius:8px;font-size:12px}
 .login-footer{text-align:center;color:#8a969f;font-size:10px;margin-top:22px;letter-spacing:.3px}
+
+
+/* logo code */
+.login-logo-full {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    display: block;
+    margin: 0 auto 16px;
+}
