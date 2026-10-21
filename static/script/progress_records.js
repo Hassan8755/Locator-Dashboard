@@ -849,10 +849,55 @@
 
                 '<th>Remarks</th>' +
 
+                '<th>Images</th>' +
+
             '</tr>';
     }
 
+function renderImages(images) {
+    let paths = [];
 
+    try {
+        if (Array.isArray(images)) {
+            paths = images;
+        } else if (typeof images === 'string' && images.trim()) {
+            paths = JSON.parse(images);
+        }
+    } catch (error) {
+        console.error('Images parse error:', error);
+    }
+
+    if (!Array.isArray(paths) || paths.length === 0) {
+        return '<span class="prx-no-images">No Images</span>';
+    }
+
+    return paths.map(path => {
+        if (typeof path !== 'string' || !path.trim()) {
+            return '';
+        }
+
+        // Sirf apni website ke local static image paths allow karein.
+        const cleanPath = path.trim();
+
+        if (
+            !cleanPath.startsWith('/static/uploads/progress_records/') ||
+            cleanPath.includes('..')
+        ) {
+            return '';
+        }
+
+        const safePath = esc(cleanPath);
+
+        return (
+            '<a href="' + safePath + '" target="_blank" rel="noopener noreferrer">' +
+                '<img src="' + safePath + '" ' +
+                'alt="Progress photo" ' +
+                'class="prx-record-image" ' +
+                'loading="lazy">' +
+            '</a>'
+        );
+    }).join('') || '<span class="prx-no-images">No Images</span>';
+}
     // =====================================================
     // TABLE
     // =====================================================
@@ -894,7 +939,7 @@
 
             body.innerHTML =
                 '<tr>' +
-                    '<td colspan="13" class="prx-empty">' +
+                    '<td colspan="14" class="prx-empty">' +
                         (
                             loadFailed
                                 ? 'Data load nahi ho saka. Server check karein.'
@@ -1031,9 +1076,11 @@
                         '</td>' +
 
                         '<td>' +
-                            esc(
-                                x.remarks || ''
-                            ) +
+                            esc(x.remarks || '') +
+                        '</td>' +
+
+                        '<td class="prx-images-cell">' +
+                            renderImages(x.images) +
                         '</td>' +
 
                     '</tr>'

@@ -945,3 +945,28 @@ css
     }
 }
 
+
+.prx-images-cell {
+    min-width: 110px;
+    white-space: normal;
+}
+
+.prx-record-image {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #d5e0e8;
+    margin: 3px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.prx-record-image:hover {
+    transform: scale(1.08);
+}
+
+.prx-no-images {
+    color: #7b8794;
+    font-size: 12px;
+}
