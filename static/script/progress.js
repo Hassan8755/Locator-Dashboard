@@ -33,6 +33,63 @@ function esc(v) {
   }[m]));
 }
 
+
+//imgaes max 3 code start
+const MAX_PHOTOS = 3;
+const MAX_IMAGE_SIZE = 1024 * 1024; // 1 MB
+
+async function compressPhoto(dataUrl) {
+    const image = new Image();
+
+    await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error("Photo load nahi ho saki."));
+        image.src = dataUrl;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let width = image.naturalWidth;
+    let height = image.naturalHeight;
+
+    const maxDimension = 1600;
+    const scale = Math.min(
+        1,
+        maxDimension / Math.max(width, height)
+    );
+
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(image, 0, 0, width, height);
+
+        for (let quality = 0.85; quality >= 0.25; quality -= 0.10) {
+            const blob = await new Promise(resolve =>
+                canvas.toBlob(resolve, "image/jpeg", quality)
+            );
+
+            if (blob && blob.size <= MAX_IMAGE_SIZE) {
+                return await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+        }
+
+        width = Math.round(width * 0.7);
+        height = Math.round(height * 0.7);
+    }
+
+    throw new Error("Photo ko 1 MB se kam nahi kiya ja saka.");
+}
+// imgaes max 3 code end
+
 function initProgressMap() {
   const el = document.getElementById('progressMap');
   if (!el || !window.L) return;
@@ -220,8 +277,11 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     start_date: pStart.value,
     end_date: pEnd.value,
     remarks: pRemarks.value.trim(),
-    captured_at: captureTime.textContent
-  };
+    captured_at: captureTime.textContent,
+
+    // Captured photos backend ko bhejein
+    images: (window.progressPhotos || []).map(photo => photo.dataUrl)
+};
 
   const btn = document.querySelector('.save-btn');
   btn.disabled = true;
@@ -248,6 +308,20 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
 
   alert('✓ Geotagged progress record saved to the database.');
   document.querySelectorAll('#pDivision,#pDistrict,#pTehsil,#pPackage,#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
+  // Saved photos ko form se clear karein
+if (window.progressPhotos) {
+    window.progressPhotos.length = 0;
+}
+
+const gallery = document.getElementById('photoGallery');
+if (gallery) {
+    gallery.innerHTML = '';
+}
+
+const photoStatus = document.getElementById('photoStatus');
+if (photoStatus) {
+    photoStatus.textContent = 'Pehle GPS capture karein, phir photo lein.';
+}
   pStatus.value = 'In Progress';
   pLat.value = ''; pLng.value = '';
   gpsAccuracy.textContent = '—'; captureTime.textContent = '—';
@@ -266,85 +340,179 @@ initProgressMap();
 
 // image code start
 (function () {
-  const $ = id => document.getElementById(id);
-  const video = $('camVideo'), box = $('cameraBox'), status = $('photoStatus');
-  let stream = null;
-  const photos = [];
-  window.progressPhotos = photos;            // save karte waqt isay payload mein bhejein
+    const $ = id => document.getElementById(id);
 
-  async function openCamera() {
-    if (!$('pLat').value || !$('pLng').value) {
-      status.textContent = '⚠️ Pehle "Capture Current Location" dabayein.';
-      return;
+    const video = $('camVideo');
+    const box = $('cameraBox');
+    const status = $('photoStatus');
+
+    let stream = null;
+    const photos = [];
+    window.progressPhotos = photos;
+
+    async function openCamera() {
+        if (!$('pLat').value || !$('pLng').value) {
+            status.textContent =
+                '⚠️ Pehle Capture Current Location dabayein.';
+            return;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+            status.textContent =
+                'Camera access ke liye HTTPS ya supported browser zaroori hai.';
+            return;
+        }
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1920 }
+                },
+                audio: false
+            });
+
+            video.srcObject = stream;
+            box.style.display = 'block';
+            status.textContent = 'Back camera ON hai.';
+        } catch (e) {
+            status.textContent =
+                '❌ Camera open nahi hua: ' + e.message;
+        }
     }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
-        audio: false
-      });
-      video.srcObject = stream;
-      box.style.display = 'block';
-      status.textContent = 'Back camera ON hai.';
-    } catch (e) {
-      status.textContent = '❌ Camera open nahi hua: ' + e.message;
+
+    function closeCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        stream = null;
+
+        if (video) video.srcObject = null;
+        if (box) box.style.display = 'none';
     }
-  }
 
-  function closeCamera() {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = null;
-    box.style.display = 'none';
-  }
+    async function snap() {
+        if (photos.length >= MAX_PHOTOS) {
+            status.textContent = 'Maximum 3 photos hi capture kar sakte hain.';
+            return;
+        }
 
-  function snap() {
-    if (!video.videoWidth) return;
-    const lat = $('pLat').value, lng = $('pLng').value;
-    const acc = $('gpsAccuracy').textContent;
-    const time = new Date().toLocaleString();
+        if (!video.videoWidth) {
+            status.textContent = 'Camera abhi ready nahi hai.';
+            return;
+        }
 
-    const c = document.createElement('canvas');
-    c.width = video.videoWidth; c.height = video.videoHeight;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(video, 0, 0);
+        const lat = $('pLat').value;
+        const lng = $('pLng').value;
+        const acc = $('gpsAccuracy').textContent;
+        const time = new Date().toLocaleString();
 
-    // Geotag stamp image ke andar
-    const lines = [`Lat: ${lat}  Lng: ${lng}`, `Acc: ${acc}  ${time}`,
-                   `${$('pSite').value || ''} ${$('pPackage').value || ''}`.trim()];
-    const fs = Math.max(16, Math.round(c.width / 45));
-    ctx.font = `bold ${fs}px sans-serif`;
-    const bh = lines.length * (fs + 6) + 12;
-    ctx.fillStyle = 'rgba(0,0,0,.6)';
-    ctx.fillRect(0, c.height - bh, c.width, bh);
-    ctx.fillStyle = '#fff';
-    lines.forEach((t, i) => ctx.fillText(t, 10, c.height - bh + (i + 1) * (fs + 6)));
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-    const photo = {
-      dataUrl: c.toDataURL('image/jpeg', 0.85),
-      lat: parseFloat(lat), lng: parseFloat(lng),
-      accuracy: acc, capturedAt: new Date().toISOString()
-    };
-    photos.push(photo);
-    renderGallery();
-    status.textContent = `✅ ${photos.length} photo capture hui (geotagged).`;
-  }
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
 
-  function renderGallery() {
-    const g = $('photoGallery');
-    g.innerHTML = '';
-    photos.forEach((p, i) => {
-      const d = document.createElement('div');
-      d.className = 'photo-item';
-      d.innerHTML = `<img src="${p.dataUrl}" alt="Site photo ${i + 1}"><button type="button">×</button>`;
-      d.querySelector('button').onclick = () => { photos.splice(i, 1); renderGallery(); };
-      g.appendChild(d);
-    });
-  }
+        // Photo par GPS, accuracy, date/time aur site details ka stamp
+        const lines = [
+            `Lat: ${lat}  Lng: ${lng}`,
+            `Acc: ${acc}  ${time}`,
+            `${$('pSite').value || ''} ${$('pPackage').value || ''}`.trim()
+        ];
 
-  $('openCamera').addEventListener('click', openCamera);
-  $('snapPhoto').addEventListener('click', snap);
-  $('closeCamera').addEventListener('click', closeCamera);
-  window.addEventListener('pagehide', closeCamera);
+        const fontSize = Math.max(16, Math.round(canvas.width / 45));
+        const lineHeight = fontSize + 6;
+        const boxHeight = lines.length * lineHeight + 12;
+
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(
+            0,
+            canvas.height - boxHeight,
+            canvas.width,
+            boxHeight
+        );
+
+        ctx.fillStyle = '#fff';
+        lines.forEach((line, i) => {
+            ctx.fillText(
+                line,
+                10,
+                canvas.height - boxHeight + (i + 1) * lineHeight
+            );
+        });
+
+        const snapButton = $('snapPhoto');
+        snapButton.disabled = true;
+        status.textContent = 'Photo compress ho rahi hai...';
+
+        try {
+            // Existing compressPhoto() helper use hoga
+            const dataUrl = await compressPhoto(canvas.toDataURL('image/jpeg', 0.85));
+
+            // Final compressed image ka size check
+            const base64 = dataUrl.split(',')[1];
+            const estimatedSize = Math.floor(base64.length * 3 / 4);
+
+            if (estimatedSize > MAX_IMAGE_SIZE) {
+                throw new Error('Photo abhi bhi 1 MB se bari hai.');
+            }
+
+            photos.push({
+                dataUrl: dataUrl,
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+                accuracy: acc,
+                capturedAt: new Date().toISOString()
+            });
+
+            renderGallery();
+
+            status.textContent =
+                `✅ ${photos.length}/3 photos captured. Har photo 1 MB ya kam hai.`;
+        } catch (e) {
+            status.textContent = '❌ ' + e.message;
+        } finally {
+            snapButton.disabled = false;
+        }
+    }
+
+    function renderGallery() {
+        const gallery = $('photoGallery');
+        gallery.innerHTML = '';
+
+        photos.forEach((photo, index) => {
+            const item = document.createElement('div');
+            item.className = 'photo-item';
+
+            const img = document.createElement('img');
+            img.src = photo.dataUrl;
+            img.alt = `Site photo ${index + 1}`;
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = '×';
+            removeButton.setAttribute('aria-label', 'Remove photo');
+
+            removeButton.addEventListener('click', () => {
+                photos.splice(index, 1);
+                renderGallery();
+                status.textContent =
+                    `${photos.length}/3 photos captured.`;
+            });
+
+            item.appendChild(img);
+            item.appendChild(removeButton);
+            gallery.appendChild(item);
+        });
+    }
+
+    $('openCamera').addEventListener('click', openCamera);
+    $('snapPhoto').addEventListener('click', snap);
+    $('closeCamera').addEventListener('click', closeCamera);
+
+    window.addEventListener('pagehide', closeCamera);
 })();
-
-
 // image code end

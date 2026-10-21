@@ -14,6 +14,8 @@ import geopandas as gpd
 import re
 import secrets
 import hmac
+import base64
+import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from difflib import SequenceMatcher
 
@@ -3848,33 +3850,104 @@ def get_map_boundaries():
 # =========================================================
 # 📈 SPASIS LOCATOR / PROJECT LOCATOR
 # =========================================================
+
+def save_progress_images(images):
+    if not isinstance(images, list):
+        raise ValueError("Images must be a list.")
+
+    if len(images) > 3:
+        raise ValueError("Maximum 3 photos are allowed.")
+
+    upload_dir = os.path.join(
+        app.root_path,
+        "static",
+        "uploads",
+        "progress_records"
+    )
+    os.makedirs(upload_dir, exist_ok=True)
+
+    saved_paths = []
+
+    for image_data in images:
+        if not isinstance(image_data, str):
+            raise ValueError("Invalid image data.")
+
+        if not image_data.startswith("data:image/jpeg;base64,"):
+            raise ValueError("Only JPEG camera images are accepted.")
+
+        try:
+            encoded = image_data.split(",", 1)[1]
+            image_bytes = base64.b64decode(encoded, validate=True)
+        except Exception:
+            raise ValueError("Invalid image encoding.")
+
+        # Maximum 5 MB per image
+        if len(image_bytes) > 1 * 1024 * 1024:
+            raise ValueError("Each image must be 5 MB or smaller.")
+
+        # Validate actual JPEG file signature
+        if not image_bytes.startswith(b"\xff\xd8\xff"):
+            raise ValueError("Invalid JPEG image.")
+
+        filename = f"{uuid.uuid4().hex}.jpg"
+        filepath = os.path.join(upload_dir, filename)
+
+        with open(filepath, "wb") as image_file:
+            image_file.write(image_bytes)
+
+        saved_paths.append(
+            f"/static/uploads/progress_records/{filename}"
+        )
+
+    return saved_paths
 @app.route("/progress")
 def progress():
     return render_template("progress.html")
-
 @app.route("/api/progress", methods=["GET"])
 def api_progress_list():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+
     try:
-        cursor.execute("SELECT * FROM progress_records ORDER BY id DESC")
+        cursor.execute("""
+            SELECT * FROM progress_records
+            ORDER BY id DESC
+        """)
+
         rows = cursor.fetchall()
+
         for r in rows:
             r["lat"] = float(r["lat"]) if r["lat"] is not None else None
             r["lng"] = float(r["lng"]) if r["lng"] is not None else None
             r["start_date"] = r["start_date"].isoformat() if r["start_date"] else ""
             r["end_date"] = r["end_date"].isoformat() if r["end_date"] else ""
             r["created_at"] = str(r["created_at"])
+
+            # Database JSON paths ko JavaScript array mein convert karein
+            try:
+                r["images"] = json.loads(r.get("images") or "[]")
+                if not isinstance(r["images"], list):
+                    r["images"] = []
+            except (ValueError, TypeError):
+                r["images"] = []
+
         return jsonify(rows)
+
     finally:
-        cursor.close(); db.close()
+        cursor.close()
+        db.close()
 
 @app.route("/api/progress", methods=["POST"])
 def api_progress_add():
-    d = request.get_json(force=True) or {}
-    for f in ("division", "district", "tehsil", "package_name", "site_name"):
+    d = request.get_json(silent=True) or {}
+
+    for f in (
+        "division", "district", "tehsil",
+        "package_name", "site_name"
+    ):
         if not str(d.get(f, "")).strip():
             return jsonify({"error": f + " required"}), 400
+
     if d.get("lat") in (None, "") or d.get("lng") in (None, ""):
         return jsonify({"error": "GPS required"}), 400
 
@@ -3882,40 +3955,75 @@ def api_progress_add():
         lat = float(d["lat"])
         lng = float(d["lng"])
     except (TypeError, ValueError):
-        return jsonify({"error": "Latitude/Longitude must be numeric"}), 400
+        return jsonify({"error": "Invalid GPS coordinates"}), 400
 
     if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
-        return jsonify({"error": "Latitude/Longitude out of range"}), 400
+        return jsonify({"error": "GPS coordinates out of range"}), 400
 
     accuracy = d.get("accuracy")
+
     if accuracy not in (None, ""):
         try:
-            # Frontend may send values such as "12 m".
-            accuracy = float(re.search(r"[-+]?\d+(?:\.\d+)?", str(accuracy)).group())
+            match = re.search(r"[-+]?\d+(?:\.\d+)?", str(accuracy))
+            if not match:
+                raise ValueError
+            accuracy = float(match.group())
         except (AttributeError, TypeError, ValueError):
-            return jsonify({"error": "GPS accuracy must be numeric"}), 400
+            return jsonify({"error": "Invalid GPS accuracy"}), 400
+
         if accuracy < 0:
             return jsonify({"error": "GPS accuracy cannot be negative"}), 400
 
+    # Capture ki hui photos server par save karein
+    try:
+        image_paths = save_progress_images(d.get("images", []))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     db = get_db()
     cursor = db.cursor()
+
     try:
         cursor.execute("""
-            INSERT INTO progress_records
-            (division, district, tehsil, package_name, site_name, plant_type,
-             lat, lng, accuracy, status, start_date, end_date, remarks, captured_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            INSERT INTO progress_records (
+                division, district, tehsil, package_name,
+                site_name, plant_type, lat, lng, accuracy,
+                status, start_date, end_date, remarks,
+                captured_at, images
+            )
+            VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s
+            )
         """, (
-            d["division"].strip(), d["district"].strip(), d["tehsil"].strip(),
-            d["package_name"].strip(), d["site_name"].strip(),
+            d["division"].strip(),
+            d["district"].strip(),
+            d["tehsil"].strip(),
+            d["package_name"].strip(),
+            d["site_name"].strip(),
             (d.get("plant_type") or "").strip(),
-            lat, lng,
-            accuracy if accuracy is not None else None, d.get("status", "In Progress"),
-            d.get("start_date") or None, d.get("end_date") or None,
-            (d.get("remarks") or "").strip(), d.get("captured_at", "")
+            lat,
+            lng,
+            accuracy if accuracy not in (None, "") else None,
+            d.get("status", "In Progress"),
+            d.get("start_date") or None,
+            d.get("end_date") or None,
+            (d.get("remarks") or "").strip(),
+            d.get("captured_at", ""),
+            json.dumps(image_paths)
         ))
+
         db.commit()
-        return jsonify({"id": cursor.lastrowid})
+        return jsonify({
+            "id": cursor.lastrowid,
+            "images": image_paths
+        }), 201
+
+    except Exception:
+        db.rollback()
+        app.logger.exception("Progress record save failed")
+        return jsonify({"error": "Record save nahi ho saka."}), 500
+
     finally:
         cursor.close()
         db.close()
