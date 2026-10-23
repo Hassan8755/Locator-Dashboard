@@ -10,16 +10,16 @@
 // - Table records = hidden
 //
 // Division select:
-// - Division ke saare records
+// - All records of the Division
 //
 // District select:
-// - Selected District ke saare records
+// - All records of the selected District
 //
 // Tehsil select:
-// - Selected Tehsil ke saare records
+// - All records of the selected Tehsil
 //
 // Package select:
-// - Selected Package ke records
+// - Records of the selected Package
 // =========================================================
 
 (function () {
@@ -90,7 +90,7 @@
 
 
     // Lahore / lahore / LAHORE / extra spaces
-    // sab ko same maana jayega
+    // will all be treated as the same
     function norm(v) {
         return String(v ?? '')
             .trim()
@@ -275,13 +275,13 @@
 
         // -------------------------------------------------
         // IMPORTANT:
-        // Top 5 boxes ALL DATABASE RECORDS show karein
+        // Show ALL DATABASE RECORDS in the top 5 boxes
         // -------------------------------------------------
 
         renderStats(allRows);
 
 
-        // RO / MF / UF bhi ALL records se
+        // RO / MF / UF also counted from ALL records
         renderPlantStats(allRows);
 
 
@@ -296,7 +296,7 @@
 
 
         // -------------------------------------------------
-        // Map initial page par empty rahega
+        // Map will remain empty on the initial page load
         // -------------------------------------------------
 
         filtered = [];
@@ -380,13 +380,13 @@
     //   all divisions
     //
     // District:
-    //   selected division ke districts
+    //   districts of the selected division
     //
     // Tehsil:
-    //   selected district ke tehsils
+    //   tehsils of the selected district
     //
     // Package:
-    //   selected tehsil ke packages
+    //   packages of the selected tehsil
     // =====================================================
 
     function buildOptions() {
@@ -808,7 +808,7 @@
     // =====================================================
     // TABLE HEADINGS
     //
-    // Ye page open par bhi visible rahengi.
+    // These will be visible on page open too.
     // =====================================================
 
     function renderTableHeadings() {
@@ -876,7 +876,7 @@ function renderImages(images) {
             return '';
         }
 
-        // Sirf apni website ke local static image paths allow karein.
+        // Allow only local static image paths of this website.
         const cleanPath = path.trim();
 
         if (
@@ -942,8 +942,8 @@ function renderImages(images) {
                     '<td colspan="14" class="prx-empty">' +
                         (
                             loadFailed
-                                ? 'Data load nahi ho saka. Server check karein.'
-                                : 'Koi record nahi mila.'
+                                ? 'Data could not be loaded. Please check the server.'
+                                : 'No records found.'
                         ) +
                     '</td>' +
                 '</tr>';
@@ -1195,7 +1195,7 @@ function renderImages(images) {
         ) {
 
             console.error(
-                'Progress map: element ya Leaflet nahi mila.'
+                'Progress map: element or Leaflet not found.'
             );
 
             return;
@@ -1452,7 +1452,7 @@ function renderImages(images) {
             ) {
 
                 alert(
-                    '❌ jsPDF library load nahi hui.'
+                    '❌ The jsPDF library failed to load.'
                 );
 
                 return;
@@ -1462,7 +1462,7 @@ function renderImages(images) {
             if (!filtered.length) {
 
                 alert(
-                    'List me koi record nahi hai.'
+                    'There are no records in the list.'
                 );
 
                 return;
@@ -1734,7 +1734,7 @@ function renderImages(images) {
 
 
             alert(
-                '❌ PDF download nahi ho saka.\n\n' +
+                '❌ PDF could not be downloaded.\n\n' +
                 error.message
             );
         }
@@ -1750,7 +1750,7 @@ function renderImages(images) {
         if (!prxMap) {
 
             alert(
-                'Map load nahi hua.'
+                'The map has not loaded.'
             );
 
             return;
@@ -1807,7 +1807,7 @@ function renderImages(images) {
         if (!w) {
 
             alert(
-                'Popup blocked hai. Browser me popup allow karein.'
+                'Popup is blocked. Please allow popups in your browser.'
             );
 
             return;
@@ -1941,7 +1941,7 @@ function renderImages(images) {
         if (!filtered.length) {
 
             alert(
-                'Export ke liye koi record nahi hai.'
+                'There are no records to export.'
             );
 
             return;
@@ -2084,7 +2084,7 @@ function renderImages(images) {
 
 
                         // -------------------------------------------------
-                        // Selected value save
+                        // Save the selected value
                         // -------------------------------------------------
 
                         sel[f.key] =
@@ -2092,8 +2092,8 @@ function renderImages(images) {
 
 
                         // -------------------------------------------------
-                        // Agar parent clear hua:
-                        // child selections clear
+                        // If the parent was cleared:
+                        // clear the child selections
                         // -------------------------------------------------
 
                         if (
@@ -2120,14 +2120,14 @@ function renderImages(images) {
 
 
                         // -------------------------------------------------
-                        // Dropdowns rebuild
+                        // Rebuild dropdowns
                         // -------------------------------------------------
 
                         buildOptions();
 
 
                         // -------------------------------------------------
-                        // Records apply
+                        // Apply records
                         // -------------------------------------------------
 
                         applyFilters();
@@ -2139,7 +2139,7 @@ function renderImages(images) {
 
         // -------------------------------------------------
         // TABLE ROW CLICK
-        // Map par record focus
+        // Focus the record on the map
         // -------------------------------------------------
 
         const body =
@@ -2288,8 +2288,8 @@ function renderImages(images) {
                 'click',
                 () => {
 
-                    // Page ko dobara initial state
-                    // mein le jayein
+                    // Return the page to its initial
+                    // state
 
                     initializePage();
 

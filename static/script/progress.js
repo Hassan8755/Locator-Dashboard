@@ -34,7 +34,7 @@ function esc(v) {
 }
 
 
-//imgaes max 3 code start
+//images max 3 code start
 const MAX_PHOTOS = 3;
 const MAX_IMAGE_SIZE = 1024 * 1024; // 1 MB
 
@@ -43,7 +43,7 @@ async function compressPhoto(dataUrl) {
 
     await new Promise((resolve, reject) => {
         image.onload = resolve;
-        image.onerror = () => reject(new Error("Photo load nahi ho saki."));
+        image.onerror = () => reject(new Error("Photo could not be loaded."));
         image.src = dataUrl;
     });
 
@@ -86,9 +86,9 @@ async function compressPhoto(dataUrl) {
         height = Math.round(height * 0.7);
     }
 
-    throw new Error("Photo ko 1 MB se kam nahi kiya ja saka.");
+    throw new Error("Photo could not be reduced to under 1 MB.");
 }
-// imgaes max 3 code end
+// images max 3 code end
 
 function initProgressMap() {
   const el = document.getElementById('progressMap');
@@ -108,7 +108,7 @@ function initProgressMap() {
   },{collapsed:true}).addTo(progressMap);
 }
 
-/* ---------- Boundary lines (sirf map par line dikhane ke liye; form ki values user khud likhta hai) ---------- */
+/* ---------- Boundary lines (only to show lines on the map; the form values are entered by the user) ---------- */
 
 function clearBoundaryLayer(layer){ if (layer) layer.clearLayers(); }
 
@@ -208,14 +208,14 @@ function updateSpatialQA(acc) {
   const lat = Number(pLat.value), lng = Number(pLng.value);
   if (acc > ACCURACY_LIMIT_METERS) {
     spatialStatus.className = 'gis-status warn';
-    spatialStatus.textContent = '⚠ GPS accuracy ' + Math.round(acc) + ' m hai. Behtar signal wali jagah par dobara capture karein.';
+    spatialStatus.textContent = '⚠ GPS accuracy is ' + Math.round(acc) + ' m. Please capture again in a location with a better signal.';
     qaSummary.className = 'gis-status warn';
-    qaSummary.textContent = 'Spatial QA warning: GPS accuracy 50 m se zyada hai.';
+    qaSummary.textContent = 'Spatial QA warning: GPS accuracy is greater than 50 m.';
   } else {
     spatialStatus.className = 'gis-status ok';
-    spatialStatus.textContent = '✓ GPS accuracy theek hai.';
+    spatialStatus.textContent = '✓ GPS accuracy is good.';
     qaSummary.className = 'gis-status ok';
-    qaSummary.textContent = 'Spatial QA passed: GPS accuracy qabil-e-qabool hai.';
+    qaSummary.textContent = 'Spatial QA passed: GPS accuracy is acceptable.';
   }
   if (progressMap) {
     if (gpsMarker) progressMap.removeLayer(gpsMarker);
@@ -224,14 +224,14 @@ function updateSpatialQA(acc) {
       .bindPopup('<b>Current Field GPS</b><br>'+lat.toFixed(6)+', '+lng.toFixed(6));
     if (acc > 0) gpsAccuracyCircle = L.circle([lat,lng],{radius:acc,weight:1,fillOpacity:.10}).addTo(progressMap);
     progressMap.setView([lat,lng],16);
-    mapHint.textContent = 'Current field GPS map par dikhaya ja raha hai.';
+    mapHint.textContent = 'Current field GPS is shown on the map.';
   }
 }
 
 captureLocationBtn.addEventListener('click', () => {
   if (!site.value.trim()) { alert('Please enter the sitename first.'); return; }
-  if (!navigator.geolocation) { captureStatus.textContent = 'Is browser me geolocation support nahi hai.'; return; }
-  captureStatus.textContent = '📍 High-accuracy GPS capture ho raha hai...';
+  if (!navigator.geolocation) { captureStatus.textContent = 'Geolocation is not supported in this browser.'; return; }
+  captureStatus.textContent = '📍 Capturing high-accuracy GPS...';
   captureLocationBtn.disabled = true;
   navigator.geolocation.getCurrentPosition(pos => {
     const lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy || 0;
@@ -239,7 +239,7 @@ captureLocationBtn.addEventListener('click', () => {
     pLng.value = lng.toFixed(6);
     gpsAccuracy.textContent = acc ? Math.round(acc) + ' m' : '—';
     captureTime.textContent = new Date().toLocaleString();
-    captureStatus.textContent = '✓ GPS capture ho gaya. Map par check karein.';
+    captureStatus.textContent = '✓ GPS captured. Please check the map.';
     captureLocationBtn.disabled = false;
     updateSpatialQA(acc);
   }, err => {
@@ -248,7 +248,7 @@ captureLocationBtn.addEventListener('click', () => {
       2: 'Location is unavailable. Please check your GPS/location services.',
       3: 'The location request timed out. Please try again.'
     };
-    captureStatus.textContent = '✕ ' + (messages[err.code] || 'Location capture nahi ho saki.');
+    captureStatus.textContent = '✕ ' + (messages[err.code] || 'Location could not be captured.');
     captureLocationBtn.disabled = false;
   }, {enableHighAccuracy:true, timeout:20000, maximumAge:0});
 });
@@ -259,7 +259,7 @@ document.getElementById('progressForm').addEventListener('submit', e => {
 
 document.querySelector('.save-btn').addEventListener('click', async () => {
   if (!division.value.trim() || !district.value.trim() || !tehsil.value.trim() || !pkg.value.trim() || !site.value.trim()) {
-    alert('Division, District, Tehsil, Package aur Site Name likhein.'); return;
+    alert('Please enter Division, District, Tehsil, Package and Site Name.'); return;
   }
   if (!pLat.value || !pLng.value) { alert('Capture the current field GPS location first.'); return; }
 
@@ -279,7 +279,7 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     remarks: pRemarks.value.trim(),
     captured_at: captureTime.textContent,
 
-    // Captured photos backend ko bhejein
+    // Send the captured photos to the backend
     images: (window.progressPhotos || []).map(photo => photo.dataUrl)
 };
 
@@ -294,13 +294,13 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     if (!r.ok) {
       let msg = r.status;
       try { msg = (await r.json()).error || msg; } catch (e) {}
-      alert('Record save nahi hua: ' + msg);
+      alert('Record could not be saved: ' + msg);
       btn.disabled = false;
       return;
     }
   } catch (e) {
     console.error(e);
-    alert('Server se connection nahi ho saka.');
+    alert('Could not connect to the server.');
     btn.disabled = false;
     return;
   }
@@ -308,7 +308,7 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
 
   alert('✓ Geotagged progress record saved to the database.');
   document.querySelectorAll('#pDivision,#pDistrict,#pTehsil,#pPackage,#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
-  // Saved photos ko form se clear karein
+  // Clear the saved photos from the form
 if (window.progressPhotos) {
     window.progressPhotos.length = 0;
 }
@@ -320,7 +320,7 @@ if (gallery) {
 
 const photoStatus = document.getElementById('photoStatus');
 if (photoStatus) {
-    photoStatus.textContent = 'Pehle GPS capture karein, phir photo lein.';
+    photoStatus.textContent = 'Capture GPS first, then take photos.';
 }
   pStatus.value = 'In Progress';
   pLat.value = ''; pLng.value = '';
@@ -353,13 +353,13 @@ initProgressMap();
     async function openCamera() {
         if (!$('pLat').value || !$('pLng').value) {
             status.textContent =
-                '⚠️ Pehle Capture Current Location dabayein.';
+                '⚠️ Please press Capture Current Location first.';
             return;
         }
 
         if (!navigator.mediaDevices?.getUserMedia) {
             status.textContent =
-                'Camera access ke liye HTTPS ya supported browser zaroori hai.';
+                'HTTPS or a supported browser is required for camera access.';
             return;
         }
 
@@ -374,10 +374,10 @@ initProgressMap();
 
             video.srcObject = stream;
             box.style.display = 'block';
-            status.textContent = 'Back camera ON hai.';
+            status.textContent = 'Back camera is ON.';
         } catch (e) {
             status.textContent =
-                '❌ Camera open nahi hua: ' + e.message;
+                '❌ Could not open camera: ' + e.message;
         }
     }
 
@@ -394,12 +394,12 @@ initProgressMap();
 
     async function snap() {
         if (photos.length >= MAX_PHOTOS) {
-            status.textContent = 'Maximum 3 photos hi capture kar sakte hain.';
+            status.textContent = 'You can capture a maximum of 3 photos.';
             return;
         }
 
         if (!video.videoWidth) {
-            status.textContent = 'Camera abhi ready nahi hai.';
+            status.textContent = 'Camera is not ready yet.';
             return;
         }
 
@@ -415,7 +415,7 @@ initProgressMap();
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0);
 
-        // Photo par GPS, accuracy, date/time aur site details ka stamp
+        // Stamp GPS, accuracy, date/time and site details on the photo
         const lines = [
             `Lat: ${lat}  Lng: ${lng}`,
             `Acc: ${acc}  ${time}`,
@@ -446,18 +446,18 @@ initProgressMap();
 
         const snapButton = $('snapPhoto');
         snapButton.disabled = true;
-        status.textContent = 'Photo compress ho rahi hai...';
+        status.textContent = 'Compressing photo...';
 
         try {
-            // Existing compressPhoto() helper use hoga
+            // The existing compressPhoto() helper will be used
             const dataUrl = await compressPhoto(canvas.toDataURL('image/jpeg', 0.85));
 
-            // Final compressed image ka size check
+            // Check the size of the final compressed image
             const base64 = dataUrl.split(',')[1];
             const estimatedSize = Math.floor(base64.length * 3 / 4);
 
             if (estimatedSize > MAX_IMAGE_SIZE) {
-                throw new Error('Photo abhi bhi 1 MB se bari hai.');
+                throw new Error('Photo is still larger than 1 MB.');
             }
 
             photos.push({
@@ -471,7 +471,7 @@ initProgressMap();
             renderGallery();
 
             status.textContent =
-                `✅ ${photos.length}/3 photos captured. Har photo 1 MB ya kam hai.`;
+                `✅ ${photos.length}/3 photos captured. Each photo is 1 MB or less.`;
         } catch (e) {
             status.textContent = '❌ ' + e.message;
         } finally {
