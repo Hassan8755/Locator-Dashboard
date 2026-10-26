@@ -31,6 +31,7 @@ services:
     volumes:
       - uploads:/app/uploads
       - shapefile_uploads:/app/shapefile_uploads
+      - progress_uploads:/app/static/uploads
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:5000/health"]
       interval: 30s
@@ -41,3 +42,4 @@ volumes:
   mysql_data:
   uploads:
   shapefile_uploads:
+  progress_uploads:
