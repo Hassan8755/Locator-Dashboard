@@ -231,31 +231,196 @@ function updateSpatialQA(acc) {
 captureLocationBtn.addEventListener('click', () => {
   if (!site.value.trim()) { alert('Please enter the sitename first.'); return; }
   if (!navigator.geolocation) { captureStatus.textContent = 'Geolocation is not supported in this browser.'; return; }
-  captureStatus.textContent = '📍 Capturing high-accuracy GPS...';
+
+  // Works without internet / mobile tower signal: the phone's GPS chip is used.
+  // A GPS fix can take 30-60 seconds outdoors, so we keep listening and use the best reading.
+  const MAX_WAIT_MS = 60000;
+  const startedAt = Date.now();
+  let best = null, watchId = null, timer = null, ticker = null, finished = false, lastErr = null;
+
   captureLocationBtn.disabled = true;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy || 0;
+  captureStatus.textContent = '🛰️ Searching for GPS satellites... please stay in an open area.';
+
+  function accOf(p) { return p.coords.accuracy ?? Infinity; }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    clearInterval(ticker);
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    captureLocationBtn.disabled = false;
+
+    if (!best) {
+      const messages = {
+        1: 'Location permission was denied. Please allow location access.',
+        2: 'Location is unavailable. Please turn ON GPS/Location and go to an open area.',
+        3: 'GPS fix not found in time. Please go to an open area and try again.'
+      };
+      captureStatus.textContent = '✕ ' + ((lastErr && messages[lastErr.code]) || 'Location could not be captured.');
+      return;
+    }
+
+    const lat = best.coords.latitude, lng = best.coords.longitude;
+    const acc = Number.isFinite(accOf(best)) ? accOf(best) : 0;
     pLat.value = lat.toFixed(6);
     pLng.value = lng.toFixed(6);
     gpsAccuracy.textContent = acc ? Math.round(acc) + ' m' : '—';
     captureTime.textContent = new Date().toLocaleString();
     captureStatus.textContent = '✓ GPS captured. Please check the map.';
-    captureLocationBtn.disabled = false;
     updateSpatialQA(acc);
+  }
+
+  watchId = navigator.geolocation.watchPosition(pos => {
+    if (!best || accOf(pos) < accOf(best)) best = pos;
+    if (accOf(best) <= ACCURACY_LIMIT_METERS) finish();   // good enough, stop early
   }, err => {
-    const messages = {
-      1: 'Location permission was denied. Please allow location access.',
-      2: 'Location is unavailable. Please check your GPS/location services.',
-      3: 'The location request timed out. Please try again.'
-    };
-    captureStatus.textContent = '✕ ' + (messages[err.code] || 'Location could not be captured.');
-    captureLocationBtn.disabled = false;
-  }, {enableHighAccuracy:true, timeout:20000, maximumAge:0});
+    lastErr = err;
+    if (err.code === 1) finish();                         // permission denied: no point waiting
+  }, {enableHighAccuracy: true, timeout: 30000, maximumAge: 0});
+
+  timer = setTimeout(finish, MAX_WAIT_MS);                // after 60s use the best reading we have
+
+  ticker = setInterval(() => {
+    if (finished) return;
+    const sec = Math.round((Date.now() - startedAt) / 1000);
+    captureStatus.textContent = best
+      ? '📡 GPS accuracy ' + Math.round(accOf(best)) + ' m, improving... (' + sec + 's)'
+      : '🛰️ Waiting for GPS fix... (' + sec + 's)';
+  }, 1000);
 });
 
 document.getElementById('progressForm').addEventListener('submit', e => {
   e.preventDefault();
 });
+
+/* ---------- Offline queue: records are kept on the phone (IndexedDB) until the internet is back ---------- */
+
+const QUEUE_DB = 'spasis_offline';
+const QUEUE_STORE = 'pending_records';
+
+function queueDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(QUEUE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(QUEUE_STORE, {keyPath: 'id', autoIncrement: true});
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function queueTx(mode, fn) {
+  const db = await queueDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(QUEUE_STORE, mode);
+    const request = fn(tx.objectStore(QUEUE_STORE));
+    tx.oncomplete = () => { db.close(); resolve(request.result); };
+    tx.onerror = tx.onabort = () => { db.close(); reject(tx.error); };
+  });
+}
+
+const queueAdd = rec => queueTx('readwrite', s => s.add(rec));
+const queuePut = rec => queueTx('readwrite', s => s.put(rec));
+const queueDelete = id => queueTx('readwrite', s => s.delete(id));
+const queueAll = () => queueTx('readonly', s => s.getAll());
+
+// Returns {ok:true} | {network:true} | {auth:true} | {error:'message'}
+async function sendRecord(payload) {
+  let r;
+  try {
+    r = await fetch('/api/progress', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    return {network: true};                       // no internet / server unreachable
+  }
+  // Login session expired: Flask redirects to /login
+  if (r.redirected || r.status === 401 || (r.url || '').includes('/login')) return {auth: true};
+  if (r.status === 502 || r.status === 503 || r.status === 504) return {network: true};
+  if (!r.ok) {
+    let msg = String(r.status);
+    try { msg = (await r.json()).error || msg; } catch (e) {}
+    return {error: msg};
+  }
+  return {ok: true};
+}
+
+function pendingBadge() {
+  let el = document.getElementById('pendingBadge');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'pendingBadge';
+  el.style.cssText = 'display:none;margin-top:10px;padding:10px 12px;border-radius:8px;background:#fff4e0;border:1px solid #d9822b;color:#7a4a0c;font-size:14px';
+  document.querySelector('.save-btn').parentNode.appendChild(el);
+  return el;
+}
+
+async function updatePendingBadge() {
+  let items = [];
+  try { items = await queueAll(); } catch (e) { console.error(e); }
+  const el = pendingBadge();
+  if (!items.length) { el.style.display = 'none'; return; }
+  const failed = items.filter(x => x.failed);
+  el.innerHTML = '📤 <b>' + items.length + '</b> record(s) saved on this phone, waiting to upload.' +
+    (failed.length ? '<br>⚠ Server rejected ' + failed.length + ': ' + esc(failed[0].failed) : '') +
+    ' <button type="button" id="pendingUploadBtn" style="margin-left:8px;padding:4px 10px">Upload now</button>';
+  el.style.display = 'block';
+  document.getElementById('pendingUploadBtn').onclick = async () => {
+    const all = await queueAll();
+    for (const it of all) { if (it.failed) { delete it.failed; await queuePut(it); } }
+    syncPending();
+  };
+}
+
+let syncing = false;
+async function syncPending() {
+  if (syncing) return;
+  syncing = true;
+  let sent = 0, authProblem = false;
+  try {
+    const items = (await queueAll()).filter(x => !x.failed);
+    for (const item of items) {
+      const res = await sendRecord(item.payload);
+      if (res.ok) { await queueDelete(item.id); sent++; }
+      else if (res.network) break;                        // still offline, try again later
+      else if (res.auth) { authProblem = true; break; }   // needs login
+      else { item.failed = res.error; await queuePut(item); }
+    }
+  } catch (e) {
+    console.error('Sync error:', e);
+  } finally {
+    syncing = false;
+    await updatePendingBadge();
+  }
+  if (sent) alert('✓ ' + sent + ' pending record(s) uploaded to the database.');
+  if (authProblem) {
+    const el = pendingBadge();
+    el.style.display = 'block';
+    el.innerHTML += '<br>⚠ Session expired. Please log in again; pending records will upload automatically.';
+  }
+}
+
+function resetProgressForm() {
+  document.querySelectorAll('#pDivision,#pDistrict,#pTehsil,#pPackage,#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
+  if (window.progressPhotos) window.progressPhotos.length = 0;
+  const gallery = document.getElementById('photoGallery');
+  if (gallery) gallery.innerHTML = '';
+  const photoStatus = document.getElementById('photoStatus');
+  if (photoStatus) photoStatus.textContent = 'Capture GPS first, then take photos.';
+  pStatus.value = 'In Progress';
+  pLat.value = ''; pLng.value = '';
+  gpsAccuracy.textContent = '—'; captureTime.textContent = '—';
+  captureStatus.textContent = 'Press Capture Current Location to take a new field observation.';
+  spatialStatus.className = 'gis-status';
+  spatialStatus.textContent = 'Accuracy check will appear here after GPS capture..';
+  clearBoundaryLayer(divisionBoundaryLayer);
+  clearBoundaryLayer(districtBoundaryLayer);
+  clearBoundaryLayer(tehsilBoundaryLayer);
+  if (gpsMarker && progressMap) { progressMap.removeLayer(gpsMarker); gpsMarker = null; }
+  if (gpsAccuracyCircle && progressMap) { progressMap.removeLayer(gpsAccuracyCircle); gpsAccuracyCircle = null; }
+}
 
 document.querySelector('.save-btn').addEventListener('click', async () => {
   if (!division.value.trim() || !district.value.trim() || !tehsil.value.trim() || !pkg.value.trim() || !site.value.trim()) {
@@ -264,6 +429,8 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
   if (!pLat.value || !pLng.value) { alert('Capture the current field GPS location first.'); return; }
 
   const payload = {
+    // unique id so the server can ignore a duplicate if an upload is retried
+    client_uuid: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2)),
     division: division.value.trim(),
     district: district.value.trim(),
     tehsil: tehsil.value.trim(),
@@ -278,62 +445,42 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     end_date: pEnd.value,
     remarks: pRemarks.value.trim(),
     captured_at: captureTime.textContent,
-
-    // Send the captured photos to the backend
     images: (window.progressPhotos || []).map(photo => photo.dataUrl)
-};
+  };
 
   const btn = document.querySelector('.save-btn');
   btn.disabled = true;
-  try {
-    const r = await fetch('/api/progress', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) {
-      let msg = r.status;
-      try { msg = (await r.json()).error || msg; } catch (e) {}
-      alert('Record could not be saved: ' + msg);
+  const res = await sendRecord(payload);
+
+  if (res.ok) {
+    alert('✓ Geotagged progress record saved to the database.');
+  } else if (res.network || res.auth) {
+    try {
+      await queueAdd({payload, savedAt: new Date().toISOString()});
+    } catch (e) {
+      console.error(e);
+      alert('No internet, and the record could not be stored on this phone. Please do not clear the form; try again.');
       btn.disabled = false;
       return;
     }
-  } catch (e) {
-    console.error(e);
-    alert('Could not connect to the server.');
+    alert(res.auth
+      ? '⚠ Your login session expired. The record is saved on this phone. Please log in again and it will upload automatically.'
+      : '📴 No internet. The record (with photos) is saved on this phone and will upload automatically when the internet is back.');
+  } else {
+    alert('Record could not be saved: ' + res.error);
     btn.disabled = false;
     return;
   }
+
   btn.disabled = false;
-
-  alert('✓ Geotagged progress record saved to the database.');
-  document.querySelectorAll('#pDivision,#pDistrict,#pTehsil,#pPackage,#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
-  // Clear the saved photos from the form
-if (window.progressPhotos) {
-    window.progressPhotos.length = 0;
-}
-
-const gallery = document.getElementById('photoGallery');
-if (gallery) {
-    gallery.innerHTML = '';
-}
-
-const photoStatus = document.getElementById('photoStatus');
-if (photoStatus) {
-    photoStatus.textContent = 'Capture GPS first, then take photos.';
-}
-  pStatus.value = 'In Progress';
-  pLat.value = ''; pLng.value = '';
-  gpsAccuracy.textContent = '—'; captureTime.textContent = '—';
-  captureStatus.textContent = 'Press Capture Current Location to take a new field observation.';
-  spatialStatus.className = 'gis-status';
-  spatialStatus.textContent = 'Accuracy check will appear here after GPS capture..';
-  clearBoundaryLayer(divisionBoundaryLayer);
-  clearBoundaryLayer(districtBoundaryLayer);
-  clearBoundaryLayer(tehsilBoundaryLayer);
-  if (gpsMarker && progressMap) { progressMap.removeLayer(gpsMarker); gpsMarker = null; }
-  if (gpsAccuracyCircle && progressMap) { progressMap.removeLayer(gpsAccuracyCircle); gpsAccuracyCircle = null; }
+  resetProgressForm();
+  updatePendingBadge();
 });
+
+// Try to upload pending records: when internet returns, every 30 s, and on page load
+window.addEventListener('online', () => syncPending());
+setInterval(() => syncPending(), 30000);
+syncPending();
 
 initProgressMap();
 
