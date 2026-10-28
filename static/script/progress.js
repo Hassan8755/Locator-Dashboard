@@ -298,6 +298,7 @@ document.getElementById('progressForm').addEventListener('submit', e => {
 
 const QUEUE_DB = 'spasis_offline';
 const QUEUE_STORE = 'pending_records';
+let lastSyncNote = '';   // shown in the orange box so we can see why an upload is waiting
 
 function queueDb() {
   return new Promise((resolve, reject) => {
@@ -326,22 +327,29 @@ const queueAll = () => queueTx('readonly', s => s.getAll());
 // Returns {ok:true} | {network:true} | {auth:true} | {error:'message'}
 async function sendRecord(payload) {
   let r;
+  const controller = new AbortController();
+  const abortTimer = setTimeout(() => controller.abort(), 90000);   // weak signal: never hang forever
   try {
     r = await fetch('/api/progress', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       credentials: 'same-origin',
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
   } catch (e) {
+    lastSyncNote = 'no connection or server not reachable';
     return {network: true};                       // no internet / server unreachable
+  } finally {
+    clearTimeout(abortTimer);
   }
   // Login session expired: Flask redirects to /login
   if (r.redirected || r.status === 401 || (r.url || '').includes('/login')) return {auth: true};
-  if (r.status === 502 || r.status === 503 || r.status === 504) return {network: true};
+  if ([408, 429, 502, 503, 504].includes(r.status)) { lastSyncNote = 'server busy (' + r.status + ')'; return {network: true}; }
   if (!r.ok) {
     let msg = String(r.status);
     try { msg = (await r.json()).error || msg; } catch (e) {}
+    lastSyncNote = 'server rejected: ' + msg;
     return {error: msg};
   }
   return {ok: true};
@@ -365,6 +373,7 @@ async function updatePendingBadge() {
   const failed = items.filter(x => x.failed);
   el.innerHTML = '📤 <b>' + items.length + '</b> record(s) saved on this phone, waiting to upload.' +
     (failed.length ? '<br>⚠ Server rejected ' + failed.length + ': ' + esc(failed[0].failed) : '') +
+    (lastSyncNote ? '<br><small>Last try (' + new Date().toLocaleTimeString() + '): ' + esc(lastSyncNote) + '</small>' : '') +
     ' <button type="button" id="pendingUploadBtn" style="margin-left:8px;padding:4px 10px">Upload now</button>';
   el.style.display = 'block';
   document.getElementById('pendingUploadBtn').onclick = async () => {
@@ -383,7 +392,7 @@ async function syncPending() {
     const items = (await queueAll()).filter(x => !x.failed);
     for (const item of items) {
       const res = await sendRecord(item.payload);
-      if (res.ok) { await queueDelete(item.id); sent++; }
+      if (res.ok) { await queueDelete(item.id); sent++; lastSyncNote = ''; }
       else if (res.network) break;                        // still offline, try again later
       else if (res.auth) { authProblem = true; break; }   // needs login
       else { item.failed = res.error; await queuePut(item); }
@@ -478,8 +487,16 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
 });
 
 // Try to upload pending records: when internet returns, every 30 s, and on page load
-window.addEventListener('online', () => syncPending());
-setInterval(() => syncPending(), 30000);
+function syncSoon() {
+  syncPending();
+  setTimeout(syncPending, 3000);    // right after the network returns, DNS may need a few seconds
+  setTimeout(syncPending, 8000);
+}
+window.addEventListener('online', syncSoon);
+window.addEventListener('focus', syncSoon);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncSoon(); });
+if (navigator.connection && navigator.connection.addEventListener) navigator.connection.addEventListener('change', syncSoon);
+setInterval(() => syncPending(), 10000);
 syncPending();
 
 initProgressMap();
