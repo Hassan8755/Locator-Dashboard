@@ -107,3 +107,34 @@ body.login-page{
     display: block;
     margin: 0 auto 16px;
 }
+
+
+/*pasword eye icon */
+/* password eye toggle */
+.password-wrap{
+    position:relative;
+}
+.password-wrap input{
+    padding-right:44px;
+}
+.login-card .toggle-password,
+.login-card .toggle-password:hover{
+    position:absolute;
+    top:50%;
+    right:8px;
+    transform:translateY(-50%);
+    width:32px;
+    height:32px;
+    margin:0;
+    padding:0;
+    background:transparent;
+    color:#687884;
+    border:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+.login-card .toggle-password:hover{
+    color:#176b87;
+}
