@@ -146,3 +146,48 @@
 
     
 @media(max-width:700px){.au-grid{grid-template-columns:1fr}}
+
+
+/* password eye toggle */
+.pw-wrap{
+    position:relative;
+    width:100%;
+}
+.pw-wrap input{
+    width:100%;
+    padding-right:40px;
+}
+.pw-eye{
+    position:absolute;
+    top:50%;
+    right:6px;
+    transform:translateY(-50%);
+    width:30px;
+    height:30px;
+    margin:0;
+    padding:0;
+    border:0;
+    background:transparent;
+    color:#687884;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+.pw-eye:hover{
+    color:#176b87;
+}
+
+/* table ke andar chhoti "New password" field */
+.au-inline .pw-wrap{
+    width:150px;
+}
+.au-inline .pw-wrap input{
+    width:100%;
+    padding-right:34px;
+}
+.au-inline .pw-eye{
+    width:26px;
+    height:26px;
+    right:4px;
+}
