@@ -65,6 +65,13 @@
     let markerLayer = null;
     let markerById = {};
 
+// Boundary layers
+    let divisionBoundaryLayer = null;
+    let districtBoundaryLayer = null;
+    let tehsilBoundaryLayer = null;
+
+    let boundaryRequestId = 0;
+
 
     // =====================================================
     // HELPERS
@@ -860,39 +867,277 @@
     // =====================================================
     // MAP INIT
     // =====================================================
+function initMap() {
 
-    function initMap() {
+    const el = $('prxMap');
 
-        const el = $('prxMap');
-
-        if (!el || !window.L) {
-
-            console.error(
-                'Progress map: element or Leaflet not found.'
-            );
-
-            return;
-        }
-
-        prxMap = L.map(el).setView([31.5204, 74.3587], 7);
-
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution: '© OpenStreetMap contributors'
-            }
-        ).addTo(prxMap);
-
-        L.control.scale({
-            imperial: false,
-            position: 'bottomleft'
-        }).addTo(prxMap);
-
-        markerLayer = L.layerGroup().addTo(prxMap);
-
-        setTimeout(() => prxMap.invalidateSize(), 300);
+    if (!el || !window.L) {
+        console.error('Progress map: element or Leaflet not found.');
+        return;
     }
 
+    prxMap = L.map(el).setView([31.5204, 74.3587], 7);
+
+    const osm = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            attribution: '© OpenStreetMap contributors'
+        }
+    ).addTo(prxMap);
+
+    // GPS / Progress points
+    markerLayer = L.layerGroup().addTo(prxMap);
+
+    // Administrative boundaries
+    divisionBoundaryLayer = L.layerGroup().addTo(prxMap);
+    districtBoundaryLayer = L.layerGroup().addTo(prxMap);
+    tehsilBoundaryLayer = L.layerGroup().addTo(prxMap);
+
+    // Map layer control
+    L.control.layers(
+        {
+            'OpenStreetMap': osm
+        },
+        {
+            'Division Boundary': divisionBoundaryLayer,
+            'District Boundary': districtBoundaryLayer,
+            'Tehsil Boundary': tehsilBoundaryLayer,
+            'GPS / Progress Points': markerLayer
+        },
+        {
+            collapsed: true
+        }
+    ).addTo(prxMap);
+
+    L.control.scale({
+        imperial: false,
+        position: 'bottomleft'
+    }).addTo(prxMap);
+
+    setTimeout(() => {
+        prxMap.invalidateSize();
+    }, 300);
+}
+
+// =====================================================
+// ADMINISTRATIVE BOUNDARIES
+// =====================================================
+
+function clearBoundaryLayer(layer) {
+
+    if (layer) {
+        layer.clearLayers();
+    }
+}
+
+
+// Boundary styles
+function boundaryStyle(type) {
+
+    const styles = {
+
+        division: {
+            color: '#0b3d62',
+            weight: 3,
+            dashArray: '8,5',
+            fillOpacity: 0,
+            opacity: 0.95
+        },
+
+        district: {
+            color: '#d9822b',
+            weight: 2.5,
+            dashArray: '4,4',
+            fillOpacity: 0.04,
+            opacity: 0.95
+        },
+
+        tehsil: {
+            color: '#1e9e5a',
+            weight: 2.5,
+            fillOpacity: 0.14,
+            opacity: 0.95
+        }
+    };
+
+    return styles[type];
+}
+
+
+// Boundary popup
+function boundaryPopup(item) {
+
+    return (
+        '<b>' + esc((item.type || '').toUpperCase()) +
+        ' BOUNDARY</b><br>' +
+
+        '<b>Name:</b> ' + esc(item.name) +
+
+        (item.division
+            ? '<br><b>Division:</b> ' + esc(item.division)
+            : '') +
+
+        (item.district
+            ? '<br><b>District:</b> ' + esc(item.district)
+            : '') +
+
+        (item.tehsil
+            ? '<br><b>Tehsil:</b> ' + esc(item.tehsil)
+            : '')
+    );
+}
+
+
+// Load boundary from Flask API
+async function loadBoundaryLayer(layerGroup, type, params) {
+
+    clearBoundaryLayer(layerGroup);
+
+    if (!layerGroup) return;
+
+    try {
+
+        const qs = new URLSearchParams(params);
+
+        qs.set('type', type);
+
+        const response = await fetch(
+            '/map_boundaries?' + qs.toString()
+        );
+
+        if (!response.ok) {
+            throw new Error('Boundary API failed: ' + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) return;
+
+        data.forEach(item => {
+
+            if (!item.geometry) return;
+
+            const geoLayer = L.geoJSON(
+                {
+                    type: 'Feature',
+                    geometry: item.geometry,
+                    properties: {}
+                },
+                {
+                    style: boundaryStyle(type)
+                }
+            );
+
+            geoLayer.bindPopup(boundaryPopup(item));
+
+            geoLayer.addTo(layerGroup);
+        });
+
+    } catch (error) {
+
+        console.error(type + ' boundary error:', error);
+    }
+}
+
+
+// Fit map to BOTH boundaries and GPS points
+function fitMapToAllLayers() {
+
+    if (!prxMap) return;
+
+    const groups = [
+        markerLayer,
+        divisionBoundaryLayer,
+        districtBoundaryLayer,
+        tehsilBoundaryLayer
+    ];
+
+    const combined = L.featureGroup();
+
+    groups.forEach(group => {
+
+        if (!group || !group.getLayers().length) return;
+
+        group.getLayers().forEach(layer => {
+            combined.addLayer(layer);
+        });
+    });
+
+    const bounds = combined.getBounds();
+
+    if (bounds.isValid()) {
+
+        prxMap.fitBounds(bounds, {
+            padding: [35, 35],
+            maxZoom: 14
+        });
+    }
+}
+
+
+// Load boundaries according to selected filters
+async function loadSelectedBoundaries() {
+
+    if (!prxMap) return;
+
+    const requestId = ++boundaryRequestId;
+
+    const division = $('prxDivision').value;
+    const district = $('prxDistrict').value;
+    const tehsil = $('prxTehsil').value;
+
+    // Clear previous boundaries
+    clearBoundaryLayer(divisionBoundaryLayer);
+    clearBoundaryLayer(districtBoundaryLayer);
+    clearBoundaryLayer(tehsilBoundaryLayer);
+
+    if (!division) return;
+
+    // Division boundary
+    await loadBoundaryLayer(
+        divisionBoundaryLayer,
+        'division',
+        {
+            division: division
+        }
+    );
+
+    if (requestId !== boundaryRequestId) return;
+
+    // District boundary
+    if (district) {
+
+        await loadBoundaryLayer(
+            districtBoundaryLayer,
+            'district',
+            {
+                division: division,
+                district: district
+            }
+        );
+    }
+
+    if (requestId !== boundaryRequestId) return;
+
+    // Tehsil boundary
+    if (district && tehsil) {
+
+        await loadBoundaryLayer(
+            tehsilBoundaryLayer,
+            'tehsil',
+            {
+                division: division,
+                district: district,
+                tehsil: tehsil
+            }
+        );
+    }
+
+    if (requestId !== boundaryRequestId) return;
+
+    // Show boundaries AND all filtered GPS points
+    fitMapToAllLayers();
+}
 
     // =====================================================
     // MAP POPUP
@@ -1444,6 +1689,8 @@
                 buildOptions();
 
                 applyFilters();
+                // Load selected administrative boundaries
+                loadSelectedBoundaries();
             });
         });
 
