@@ -26,34 +26,50 @@
       <section class="gis-card">
         <h3>📍 Site & Administrative Hierarchy</h3>
         <div class="form-grid">
+
+          <!-- CHANGED: Division, District, Tehsil ab cascading dropdown hain -->
           <div class="form-field">
             <label for="pDivision">Division</label>
-            <input id="pDivision" type="text" placeholder="Enter Division" autocomplete="off">
+            <select id="pDivision">
+              <option value="">Select Division</option>
+            </select>
           </div>
 
           <div class="form-field">
             <label for="pDistrict">District</label>
-            <input id="pDistrict" type="text" placeholder="Enter District" autocomplete="off">
+            <select id="pDistrict" disabled>
+              <option value="">Select District</option>
+            </select>
           </div>
 
           <div class="form-field">
             <label for="pTehsil">Tehsil</label>
-            <input id="pTehsil" type="text" placeholder="Enter Tehsil" autocomplete="off">
+            <select id="pTehsil" disabled>
+              <option value="">Select Tehsil</option>
+            </select>
           </div>
 
           <div class="form-field">
-            <label for="pPackage">Package</label>
-            <input id="pPackage" type="text" placeholder="Enter Package" autocomplete="off">
+            <label for="pCategory">Category</label>
+            <select id="pCategory">
+              <option value="">Select Category</option>
+              <option value="Executing Agency">Executing Agency</option>
+              <option value="Assisting Agency">Assisting Agency</option>
+            </select>
           </div>
 
           <div class="form-field">
             <label for="pSite">Site Name</label>
             <input id="pSite" type="text" placeholder="Enter Site" autocomplete="off">
           </div>
-
           <div class="form-field">
             <label for="pPlantType">Plant Type</label>
-            <input id="pPlantType" type="text" placeholder="Enter Plant" autocomplete="off">
+            <select id="pPlantType">
+              <option value="">Select Plant Type</option>
+              <option value="RO">RO</option>
+              <option value="UF">UF</option>
+              <option value="MF">MF</option>
+            </select>
           </div>
 
         </div>
@@ -107,11 +123,9 @@
         <div class="form-grid">
           <div class="form-field">
             <label for="pStatus">Status</label>
-            <select id="pStatus">
-              <option>Not Started</option>
+            <select id="pStatus">             
               <option selected>In Progress</option>
-              <option>Completed</option>
-              <option>On Hold</option>
+              <option>Completed</option>             
             </select>
           </div>
           <div class="form-field">

@@ -3,7 +3,7 @@ const ACCURACY_LIMIT_METERS = 50;
 const division = document.getElementById('pDivision');
 const district = document.getElementById('pDistrict');
 const tehsil = document.getElementById('pTehsil');
-const pkg = document.getElementById('pPackage');
+const category = document.getElementById('pCategory');
 const site = document.getElementById('pSite');
 const plant = document.getElementById('pPlantType');
 const pLat = document.getElementById('pLat');
@@ -32,6 +32,127 @@ function esc(v) {
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
   }[m]));
 }
+
+
+/* =========================================================
+   CASCADING DROPDOWNS: Division > District > Tehsil
+   (North / Center / South zone hata diya gaya hai)
+   Structure:  Division -> District -> [Tehsils]
+   ========================================================= */
+
+const punjabData = {
+  // ---- (pehle North zone) ----
+  "Rawalpindi": {
+    "Rawalpindi": ["Rawalpindi Saddar", "Rawalpindi City", "Rawalpindi Cantt", "Kahuta", "Taxila", "Kallar Syedan", "Gujar Khan"],
+    "Attock": ["Attock", "Hasan Abdal", "Fateh Jang", "Jand", "Pindi Gheb", "Hazro"],
+    "Murree": ["Murree", "Kotli Sattian"],
+    "Chakwal": ["Chakwal", "Choa Saiden Shah", "Kallar Kahar"],
+    "Jhelum": ["Jhelum", "Pind Dadan Khan", "Sohawa", "Dina"],
+    "Talagang": ["Talagang", "Lawa"]
+  },
+  "Sargodha": {
+    "Sargodha": ["Sargodha", "Shahpur Saddar", "Sillanwali", "Bhalwal", "Kot Momin", "Sahiwal", "Bhera"],
+    "Khushab": ["Khushab", "Noorpur Thal", "Quaidabad", "Naushra"],
+    "Mianwali": ["Mianwali", "Isa Khel", "Piplan"],
+    "Bhakkar": ["Bhakkar", "Darya Khan", "Mankera", "Kalur Kot"]
+  },
+  "Gujranwala": {
+    "Gujranwala": ["Gujranwala City", "Gujranwala Saddar", "Kamoke", "Noushehra Virkan"],
+    "Sialkot": ["Sialkot", "Daska", "Pasrur", "Sambrial"],
+    "Narowal": ["Narowal", "Shakargarh", "Zafarwal"]
+  },
+  "Gujrat": {
+    "Gujrat": ["Gujrat", "Kharian", "Sarai Alamgir"],
+    "Hafizabad": ["Hafizabad", "Pindi Bhattian"],
+    "Mandi Bahuddin": ["Mandi Bahuddin", "Phalia", "Malakwal"],
+    "Wazirabad": ["Wazirabad", "Alipur Chatha"]
+  },
+
+  // ---- (pehle Center zone) ----
+  "Lahore": {
+    "Lahore": ["Lahore City", "Raiwind", "Shalimar", "Lahore Cantt", "Model Town", "Allama Iqbal Town", "Nishtar Town", "Lahore Saddar", "Wahga", "Ravi Town"],
+    "Kasur": ["Kasur", "Kot Radha Kishan", "Chunian", "Pattoki"],
+    "Sheikhupura": ["Sheikhupura", "Ferozewala", "Muridke", "Sharaqpur", "Safdarabad"],
+    "Nankana Sahib": ["Nankana Sahib", "Shahkot", "Sangla Hill"]
+  },
+  "Faisalabad": {
+    "Faisalabad": ["Faisalabad City", "Jaranwala", "Samundri", "Faisalabad Saddar", "Chak Jhumra", "Tandlianwala"],
+    "Jhang": ["Jhang", "Shorkot", "Ahmad Pur Sial", "18-Hazari"],
+    "Chiniot": ["Chiniot", "Lalian", "Bhowana"],
+    "Toba Tek Singh": ["Toba Tek Singh", "Gojra", "Kamalia", "Pir Mahal"]
+  },
+  "Sahiwal": {
+    "Sahiwal": ["Sahiwal", "Chichawatni"],
+    "Pakpattan": ["Pakpattan", "Arifwala"],
+    "Okara": ["Okara", "Renala Khurd", "Depalpur"]
+  },
+
+  // ---- (pehle South zone) ----
+  "Multan": {
+    "Multan": ["Multan City", "Shujabad", "Multan Saddar", "Jalalpur Pirwala"],
+    "Vehari": ["Vehari", "Burewala", "Mailsi"],
+    "Lodhran": ["Lodhran", "Dunyapur", "Karor Pacca"],
+    "Khanewal": ["Khanewal", "Mian Channu", "Kabirwala", "Jahanian"]
+  },
+  "Bahawalpur": {
+    "Bahawalpur": ["Bahawalpur City", "Hasilpur", "Bahawalpur Saddar", "Ahmadpur East", "Yazman", "Khairpur Tamewali"],
+    "Rahim Yar Khan": ["Rahim Yar Khan", "Sadiqabad", "Liaqatpur", "Khanpur"],
+    "Bahawalnagar": ["Bahawalnagar", "Fort Abbas", "Chishtian", "Haroonabad", "Minchinabad"]
+  },
+  "Dera Ghazi Khan": {
+    "DG Khan": ["DG Khan", "Koh-e-Suleman (DG Khan)", "Koh Chutta"],
+    "Taunsa": ["Taunsa", "Vehora", "Koh-e-Suleman (Taunsa)"],
+    "Rajanpur": ["Rajanpur", "Jampur", "Rojhan"],
+    "Layyah": ["Layyah", "Karor Lal Essan", "Choubara"],
+    "Muzaffargarh": ["Muzaffargarh", "Alipur", "Jatoi"],
+    "Kot Addu": ["Kot Addu", "Chowk Sarwar Shaheed"]
+  }
+};
+
+// Dropdown ko list se bharta hai (alphabetical)
+function fillSelect(selectEl, items, placeholder) {
+  selectEl.innerHTML = '';
+  selectEl.appendChild(new Option(placeholder, ''));
+  [...items].sort((a, b) => a.localeCompare(b)).forEach(name => {
+    selectEl.appendChild(new Option(name, name));
+  });
+}
+
+// Page open par: sirf Division bhara hua, District/Tehsil band
+function resetCascade() {
+  fillSelect(division, Object.keys(punjabData), 'Select Division');
+  division.value = '';
+
+  fillSelect(district, [], 'Select District');
+  district.disabled = true;
+
+  fillSelect(tehsil, [], 'Select Tehsil');
+  tehsil.disabled = true;
+}
+
+// Division select -> us ke districts
+division.addEventListener('change', () => {
+  const districts = punjabData[division.value]
+    ? Object.keys(punjabData[division.value])
+    : [];
+
+  fillSelect(district, districts, 'Select District');
+  district.disabled = !districts.length;
+
+  fillSelect(tehsil, [], 'Select Tehsil');
+  tehsil.disabled = true;
+});
+
+// District select -> us ke tehsils
+district.addEventListener('change', () => {
+  const tehsils = (punjabData[division.value] &&
+                   punjabData[division.value][district.value]) || [];
+
+  fillSelect(tehsil, tehsils, 'Select Tehsil');
+  tehsil.disabled = !tehsils.length;
+});
+
+resetCascade();
 
 
 //images max 3 code start
@@ -412,7 +533,10 @@ async function syncPending() {
 }
 
 function resetProgressForm() {
-  document.querySelectorAll('#pDivision,#pDistrict,#pTehsil,#pPackage,#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
+  // CHANGED: Division/District/Tehsil ab dropdown hain, unhe resetCascade() reset karta hai
+  document.querySelectorAll('#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
+  resetCascade();
+  category.value = '';
   if (window.progressPhotos) window.progressPhotos.length = 0;
   const gallery = document.getElementById('photoGallery');
   if (gallery) gallery.innerHTML = '';
@@ -432,8 +556,8 @@ function resetProgressForm() {
 }
 
 document.querySelector('.save-btn').addEventListener('click', async () => {
-  if (!division.value.trim() || !district.value.trim() || !tehsil.value.trim() || !pkg.value.trim() || !site.value.trim()) {
-    alert('Please enter Division, District, Tehsil, Package and Site Name.'); return;
+  if (!division.value.trim() || !district.value.trim() || !tehsil.value.trim() || !category.value || !site.value.trim()) {
+    alert('Please select Division, District, Tehsil, Category and enter Site Name.'); return;
   }
   if (!pLat.value || !pLng.value) { alert('Capture the current field GPS location first.'); return; }
 
@@ -443,7 +567,7 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     division: division.value.trim(),
     district: district.value.trim(),
     tehsil: tehsil.value.trim(),
-    package_name: pkg.value.trim(),
+    category: category.value,
     site_name: site.value.trim(),
     plant_type: plant.value.trim(),
     lat: pLat.value,
@@ -583,7 +707,7 @@ initProgressMap();
         const lines = [
             `Lat: ${lat}  Lng: ${lng}`,
             `Acc: ${acc}  ${time}`,
-            `${$('pSite').value || ''} ${$('pPackage').value || ''}`.trim()
+            `${$('pSite').value || ''} ${$('pCategory').value || ''}`.trim()
         ];
 
         const fontSize = Math.max(16, Math.round(canvas.width / 45));

@@ -2,24 +2,18 @@
 // SPASIS PROGRESS RECORDS - progress_records.js
 //
 // Flow:
-// Division > District > Tehsil > Package
+// Division > District > Tehsil > Category
 //
 // Page open:
 // - Top 5 stats = ALL database records
 // - Table headings = visible
 // - Table records = hidden
 //
-// Division select:
-// - All records of the Division
-//
-// District select:
-// - All records of the selected District
-//
-// Tehsil select:
-// - All records of the selected Tehsil
-//
-// Package select:
-// - Records of the selected Package
+// Division select:  all records of the Division
+// District select:  all records of the District
+// Tehsil select:    all records of the Tehsil
+// Category select:  records of the selected Category
+//                   (Executing Agency / Assisting Agency)
 // =========================================================
 
 (function () {
@@ -33,11 +27,12 @@
 
     const PAGE_SIZE = 20;
 
+    // CHANGED: prxPackage/package_name ki jaga prxCategory/category
     const FIELDS = [
         { id: 'prxDivision', key: 'division' },
         { id: 'prxDistrict', key: 'district' },
         { id: 'prxTehsil',   key: 'tehsil' },
-        { id: 'prxPackage',  key: 'package_name' }
+        { id: 'prxCategory', key: 'category' }
     ];
 
     const STATUS_COLORS = {
@@ -61,7 +56,7 @@
         division: '',
         district: '',
         tehsil: '',
-        package_name: ''
+        category: ''
     };
 
     let loadFailed = false;
@@ -132,24 +127,15 @@
 
         const s = norm(v);
 
-        if (
-            /\bro\b/.test(s) ||
-            s.includes('reverse')
-        ) {
+        if (/\bro\b/.test(s) || s.includes('reverse')) {
             return 'ro';
         }
 
-        if (
-            /\bmf\b/.test(s) ||
-            s.includes('media')
-        ) {
+        if (/\bmf\b/.test(s) || s.includes('media')) {
             return 'mf';
         }
 
-        if (
-            /\buf\b/.test(s) ||
-            s.includes('ultra')
-        ) {
+        if (/\buf\b/.test(s) || s.includes('ultra')) {
             return 'uf';
         }
 
@@ -159,13 +145,6 @@
 
     // =====================================================
     // TABLE BOX SHOW / HIDE
-    //
-    // Page open:
-    // table headings remain visible
-    // rows are hidden
-    //
-    // Selection:
-    // complete records table appears
     // =====================================================
 
     function getTableBox() {
@@ -231,20 +210,15 @@
 
         } catch (error) {
 
-            console.error(
-                'Progress load error:',
-                error
-            );
+            console.error('Progress load error:', error);
 
             allRows = [];
 
             loadFailed = true;
         }
 
-
         // Dropdown options
         buildOptions();
-
 
         // Page initial state
         initializePage();
@@ -261,44 +235,28 @@
             division: '',
             district: '',
             tehsil: '',
-            package_name: ''
+            category: ''
         };
 
         page = 1;
 
         filtered = [];
 
-
         // Dropdown reset
         resetDropdowns();
 
-
-        // -------------------------------------------------
-        // IMPORTANT:
-        // Show ALL DATABASE RECORDS in the top 5 boxes
-        // -------------------------------------------------
-
+        // Top 5 boxes = ALL DATABASE RECORDS
         renderStats(allRows);
-
 
         // RO / MF / UF also counted from ALL records
         renderPlantStats(allRows);
 
-
-        // -------------------------------------------------
-        // TABLE HEADINGS SHOW
-        // RECORD ROWS HIDE
-        // -------------------------------------------------
-
+        // Table headings show, record rows hide
         renderTableHeadings();
 
         hideRecordRows();
 
-
-        // -------------------------------------------------
         // Map will remain empty on the initial page load
-        // -------------------------------------------------
-
         filtered = [];
 
         renderMap();
@@ -314,7 +272,7 @@
         const division = $('prxDivision');
         const district = $('prxDistrict');
         const tehsil   = $('prxTehsil');
-        const pkg      = $('prxPackage');
+        const category = $('prxCategory');
 
 
         if (division) {
@@ -330,7 +288,6 @@
             district.disabled = true;
         }
 
-
         if (tehsil) {
 
             tehsil.innerHTML =
@@ -340,14 +297,13 @@
             tehsil.disabled = true;
         }
 
+        if (category) {
 
-        if (pkg) {
+            category.innerHTML =
+                '<option value="">Select Category</option>';
 
-            pkg.innerHTML =
-                '<option value="">Select Package</option>';
-
-            pkg.value = '';
-            pkg.disabled = true;
+            category.value = '';
+            category.disabled = true;
         }
     }
 
@@ -376,17 +332,10 @@
     // =====================================================
     // BUILD FILTER OPTIONS
     //
-    // Division:
-    //   all divisions
-    //
-    // District:
-    //   districts of the selected division
-    //
-    // Tehsil:
-    //   tehsils of the selected district
-    //
-    // Package:
-    //   packages of the selected tehsil
+    // Division: all divisions
+    // District: districts of the selected division
+    // Tehsil:   tehsils of the selected district
+    // Category: categories of the selected tehsil
     // =====================================================
 
     function buildOptions() {
@@ -394,7 +343,7 @@
         const divisionEl = $('prxDivision');
         const districtEl = $('prxDistrict');
         const tehsilEl   = $('prxTehsil');
-        const packageEl  = $('prxPackage');
+        const categoryEl = $('prxCategory');
 
 
         // -------------------------------------------------
@@ -409,35 +358,21 @@
 
                 const key = norm(row.division);
 
-                if (
-                    key &&
-                    !labels.has(key)
-                ) {
-                    labels.set(
-                        key,
-                        String(row.division).trim()
-                    );
+                if (key && !labels.has(key)) {
+                    labels.set(key, String(row.division).trim());
                 }
             });
-
 
             const current = sel.division;
 
             divisionEl.innerHTML =
                 '<option value="">Select Division</option>';
 
-
             [...labels.entries()]
-                .sort((a, b) =>
-                    a[1].localeCompare(b[1])
-                )
+                .sort((a, b) => a[1].localeCompare(b[1]))
                 .forEach(([key, label]) => {
-
-                    divisionEl.appendChild(
-                        new Option(label, key)
-                    );
+                    divisionEl.appendChild(new Option(label, key));
                 });
-
 
             divisionEl.value =
                 labels.has(current)
@@ -463,43 +398,28 @@
 
                     const key = norm(row.district);
 
-                    if (
-                        key &&
-                        !labels.has(key)
-                    ) {
-                        labels.set(
-                            key,
-                            String(row.district).trim()
-                        );
+                    if (key && !labels.has(key)) {
+                        labels.set(key, String(row.district).trim());
                     }
                 });
-
 
             const current = sel.district;
 
             districtEl.innerHTML =
                 '<option value="">Select District</option>';
 
-
             [...labels.entries()]
-                .sort((a, b) =>
-                    a[1].localeCompare(b[1])
-                )
+                .sort((a, b) => a[1].localeCompare(b[1]))
                 .forEach(([key, label]) => {
-
-                    districtEl.appendChild(
-                        new Option(label, key)
-                    );
+                    districtEl.appendChild(new Option(label, key));
                 });
-
 
             districtEl.value =
                 labels.has(current)
                     ? current
                     : '';
 
-            districtEl.disabled =
-                !sel.division;
+            districtEl.disabled = !sel.division;
         }
 
 
@@ -523,51 +443,36 @@
 
                     const key = norm(row.tehsil);
 
-                    if (
-                        key &&
-                        !labels.has(key)
-                    ) {
-                        labels.set(
-                            key,
-                            String(row.tehsil).trim()
-                        );
+                    if (key && !labels.has(key)) {
+                        labels.set(key, String(row.tehsil).trim());
                     }
                 });
-
 
             const current = sel.tehsil;
 
             tehsilEl.innerHTML =
                 '<option value="">Select Tehsil</option>';
 
-
             [...labels.entries()]
-                .sort((a, b) =>
-                    a[1].localeCompare(b[1])
-                )
+                .sort((a, b) => a[1].localeCompare(b[1]))
                 .forEach(([key, label]) => {
-
-                    tehsilEl.appendChild(
-                        new Option(label, key)
-                    );
+                    tehsilEl.appendChild(new Option(label, key));
                 });
-
 
             tehsilEl.value =
                 labels.has(current)
                     ? current
                     : '';
 
-            tehsilEl.disabled =
-                !sel.district;
+            tehsilEl.disabled = !sel.district;
         }
 
 
         // -------------------------------------------------
-        // PACKAGE
+        // CATEGORY   (CHANGED: pehle Package tha)
         // -------------------------------------------------
 
-        if (packageEl) {
+        if (categoryEl) {
 
             const labels = new Map();
 
@@ -584,49 +489,30 @@
                 )
                 .forEach(row => {
 
-                    const key =
-                        norm(row.package_name);
+                    const key = norm(row.category);
 
-                    if (
-                        key &&
-                        !labels.has(key)
-                    ) {
-                        labels.set(
-                            key,
-                            String(
-                                row.package_name
-                            ).trim()
-                        );
+                    if (key && !labels.has(key)) {
+                        labels.set(key, String(row.category).trim());
                     }
                 });
 
+            const current = sel.category;
 
-            const current =
-                sel.package_name;
-
-            packageEl.innerHTML =
-                '<option value="">Select Package</option>';
-
+            categoryEl.innerHTML =
+                '<option value="">Select Category</option>';
 
             [...labels.entries()]
-                .sort((a, b) =>
-                    a[1].localeCompare(b[1])
-                )
+                .sort((a, b) => a[1].localeCompare(b[1]))
                 .forEach(([key, label]) => {
-
-                    packageEl.appendChild(
-                        new Option(label, key)
-                    );
+                    categoryEl.appendChild(new Option(label, key));
                 });
 
-
-            packageEl.value =
+            categoryEl.value =
                 labels.has(current)
                     ? current
                     : '';
 
-            packageEl.disabled =
-                !sel.tehsil;
+            categoryEl.disabled = !sel.tehsil;
         }
     }
 
@@ -644,50 +530,31 @@
         page = 1;
 
 
-        // -------------------------------------------------
         // NOTHING SELECTED
-        // -------------------------------------------------
-
         if (!sel.division) {
 
-            // Top stats = ALL records
             renderStats(allRows);
             renderPlantStats(allRows);
 
-
-            // Table headings visible
             renderTableHeadings();
 
-
-            // Table rows hidden
             hideRecordRows();
 
-
-            // Map empty
             renderMap();
 
             return;
         }
 
 
-        // -------------------------------------------------
-        // DIVISION / DISTRICT / TEHSIL / PACKAGE SELECTED
-        // -------------------------------------------------
-
+        // DIVISION / DISTRICT / TEHSIL / CATEGORY SELECTED
         renderStats(filtered);
         renderPlantStats(filtered);
 
-
-        // Table rows visible
         showRecordRows();
         showRecordBody();
 
-
-        // Table records
         renderTable();
 
-
-        // Map selected records
         renderMap();
     }
 
@@ -696,10 +563,7 @@
     // STATS
     // =====================================================
 
-    function distinctCount(
-        key,
-        rows
-    ) {
+    function distinctCount(key, rows) {
 
         return new Set(
             rows
@@ -715,47 +579,16 @@
             ? rows
             : [];
 
+        setText('prxCntDivision', distinctCount('division', rows));
 
-        setText(
-            'prxCntDivision',
-            distinctCount(
-                'division',
-                rows
-            )
-        );
+        setText('prxCntDistrict', distinctCount('district', rows));
 
+        setText('prxCntTehsil', distinctCount('tehsil', rows));
 
-        setText(
-            'prxCntDistrict',
-            distinctCount(
-                'district',
-                rows
-            )
-        );
+        // CHANGED: package_name ki jaga category
+        setText('prxCntCategory', distinctCount('category', rows));
 
-
-        setText(
-            'prxCntTehsil',
-            distinctCount(
-                'tehsil',
-                rows
-            )
-        );
-
-
-        setText(
-            'prxCntPackage',
-            distinctCount(
-                'package_name',
-                rows
-            )
-        );
-
-
-        setText(
-            'prxCntRecords',
-            rows.length
-        );
+        setText('prxCntRecords', rows.length);
     }
 
 
@@ -769,46 +602,31 @@
             ? rows
             : [];
 
-
         const count = {
             ro: 0,
             mf: 0,
             uf: 0
         };
 
-
         rows.forEach(row => {
 
-            const kind =
-                plantKind(row.plant_type);
+            const kind = plantKind(row.plant_type);
 
             if (kind) {
                 count[kind]++;
             }
         });
 
+        setText('prxPlantRO', count.ro);
 
-        setText(
-            'prxPlantRO',
-            count.ro
-        );
+        setText('prxPlantMF', count.mf);
 
-        setText(
-            'prxPlantMF',
-            count.mf
-        );
-
-        setText(
-            'prxPlantUF',
-            count.uf
-        );
+        setText('prxPlantUF', count.uf);
     }
 
 
     // =====================================================
     // TABLE HEADINGS
-    //
-    // These will be visible on page open too.
     // =====================================================
 
     function renderTableHeadings() {
@@ -819,122 +637,98 @@
             return;
         }
 
-
+        // CHANGED: Package ki jaga Category
         head.innerHTML =
             '<tr>' +
-
                 '<th>#</th>' +
-
                 '<th>Division</th>' +
-
                 '<th>District</th>' +
-
                 '<th>Tehsil</th>' +
-
-                '<th>Package</th>' +
-
+                '<th>Category</th>' +
                 '<th>Site Name</th>' +
-
                 '<th>Plant Type</th>' +
-
                 '<th>Status</th>' +
-
                 '<th>Start Date</th>' +
-
                 '<th>Expected Completion</th>' +
-
                 '<th>Latitude</th>' +
-
                 '<th>Longitude</th>' +
-
                 '<th>Remarks</th>' +
-
                 '<th>Images</th>' +
-
             '</tr>';
     }
 
-function renderImages(images) {
-    let paths = [];
 
-    try {
-        if (Array.isArray(images)) {
-            paths = images;
-        } else if (typeof images === 'string' && images.trim()) {
-            paths = JSON.parse(images);
+    function renderImages(images) {
+
+        let paths = [];
+
+        try {
+            if (Array.isArray(images)) {
+                paths = images;
+            } else if (typeof images === 'string' && images.trim()) {
+                paths = JSON.parse(images);
+            }
+        } catch (error) {
+            console.error('Images parse error:', error);
         }
-    } catch (error) {
-        console.error('Images parse error:', error);
+
+        if (!Array.isArray(paths) || paths.length === 0) {
+            return '<span class="prx-no-images">No Images</span>';
+        }
+
+        return paths.map(path => {
+
+            if (typeof path !== 'string' || !path.trim()) {
+                return '';
+            }
+
+            // Allow only local static image paths of this website.
+            const cleanPath = path.trim();
+
+            if (
+                !cleanPath.startsWith('/static/uploads/progress_records/') ||
+                cleanPath.includes('..')
+            ) {
+                return '';
+            }
+
+            const safePath = esc(cleanPath);
+
+            return (
+                '<a href="' + safePath + '" target="_blank" rel="noopener noreferrer">' +
+                    '<img src="' + safePath + '" ' +
+                    'alt="Progress photo" ' +
+                    'class="prx-record-image" ' +
+                    'loading="lazy">' +
+                '</a>'
+            );
+        }).join('') || '<span class="prx-no-images">No Images</span>';
     }
 
-    if (!Array.isArray(paths) || paths.length === 0) {
-        return '<span class="prx-no-images">No Images</span>';
-    }
 
-    return paths.map(path => {
-        if (typeof path !== 'string' || !path.trim()) {
-            return '';
-        }
-
-        // Allow only local static image paths of this website.
-        const cleanPath = path.trim();
-
-        if (
-            !cleanPath.startsWith('/static/uploads/progress_records/') ||
-            cleanPath.includes('..')
-        ) {
-            return '';
-        }
-
-        const safePath = esc(cleanPath);
-
-        return (
-            '<a href="' + safePath + '" target="_blank" rel="noopener noreferrer">' +
-                '<img src="' + safePath + '" ' +
-                'alt="Progress photo" ' +
-                'class="prx-record-image" ' +
-                'loading="lazy">' +
-            '</a>'
-        );
-    }).join('') || '<span class="prx-no-images">No Images</span>';
-}
     // =====================================================
     // TABLE
     // =====================================================
 
     function renderTable() {
 
-        const head =
-            $('prxHead');
-
-        const body =
-            $('prxBody');
-
-        const pager =
-            $('prxPager');
-
-        const bar =
-            $('prxViewBar');
-
+        const head  = $('prxHead');
+        const body  = $('prxBody');
+        const pager = $('prxPager');
+        const bar   = $('prxViewBar');
 
         if (!head || !body || !pager) {
             return;
         }
 
-
-        // Headings
         renderTableHeadings();
-
 
         if (bar) {
             bar.innerHTML = '';
         }
 
 
-        // -------------------------------------------------
         // NO RECORD
-        // -------------------------------------------------
-
         if (!filtered.length) {
 
             body.innerHTML =
@@ -948,136 +742,64 @@ function renderImages(images) {
                     '</td>' +
                 '</tr>';
 
-
             pager.innerHTML = '';
 
             return;
         }
 
 
-        // -------------------------------------------------
         // PAGINATION
-        // -------------------------------------------------
-
-        const totalPages =
-            Math.ceil(
-                filtered.length /
-                PAGE_SIZE
-            );
-
+        const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
         if (page > totalPages) {
             page = totalPages;
         }
 
+        const start = (page - 1) * PAGE_SIZE;
 
-        const start =
-            (page - 1) *
-            PAGE_SIZE;
+        const end = Math.min(start + PAGE_SIZE, filtered.length);
 
-
-        const end =
-            Math.min(
-                start + PAGE_SIZE,
-                filtered.length
-            );
+        const slice = filtered.slice(start, end);
 
 
-        const slice =
-            filtered.slice(
-                start,
-                end
-            );
-
-
-        // -------------------------------------------------
         // RECORD ROWS
-        // -------------------------------------------------
-
         body.innerHTML =
             slice.map((x, i) => {
 
                 return (
 
-                    '<tr data-id="' +
-                        Number(x.id) +
-                    '">' +
+                    '<tr data-id="' + Number(x.id) + '">' +
+
+                        '<td>' + (start + i + 1) + '</td>' +
+
+                        '<td>' + esc(x.division) + '</td>' +
+
+                        '<td>' + esc(x.district) + '</td>' +
+
+                        '<td>' + esc(x.tehsil) + '</td>' +
+
+                        // CHANGED: package_name ki jaga category
+                        '<td>' + esc(x.category || '') + '</td>' +
+
+                        '<td><b>' + esc(x.site_name) + '</b></td>' +
+
+                        '<td>' + esc(x.plant_type || '') + '</td>' +
 
                         '<td>' +
-                            (start + i + 1) +
-                        '</td>' +
-
-                        '<td>' +
-                            esc(x.division) +
-                        '</td>' +
-
-                        '<td>' +
-                            esc(x.district) +
-                        '</td>' +
-
-                        '<td>' +
-                            esc(x.tehsil) +
-                        '</td>' +
-
-                        '<td>' +
-                            esc(
-                                x.package_name || ''
-                            ) +
-                        '</td>' +
-
-                        '<td>' +
-                            '<b>' +
-                                esc(
-                                    x.site_name
-                                ) +
-                            '</b>' +
-                        '</td>' +
-
-                        '<td>' +
-                            esc(
-                                x.plant_type || ''
-                            ) +
-                        '</td>' +
-
-                        '<td>' +
-                            '<span class="prx-pill ' +
-                                statusClass(
-                                    x.status
-                                ) +
-                            '">' +
-                                esc(
-                                    x.status || ''
-                                ) +
+                            '<span class="prx-pill ' + statusClass(x.status) + '">' +
+                                esc(x.status || '') +
                             '</span>' +
                         '</td>' +
 
-                        '<td>' +
-                            esc(
-                                x.start_date || ''
-                            ) +
-                        '</td>' +
+                        '<td>' + esc(x.start_date || '') + '</td>' +
 
-                        '<td>' +
-                            esc(
-                                x.end_date || ''
-                            ) +
-                        '</td>' +
+                        '<td>' + esc(x.end_date || '') + '</td>' +
 
-                        '<td>' +
-                            esc(
-                                x.lat ?? ''
-                            ) +
-                        '</td>' +
+                        '<td>' + esc(x.lat ?? '') + '</td>' +
 
-                        '<td>' +
-                            esc(
-                                x.lng ?? ''
-                            ) +
-                        '</td>' +
+                        '<td>' + esc(x.lng ?? '') + '</td>' +
 
-                        '<td>' +
-                            esc(x.remarks || '') +
-                        '</td>' +
+                        '<td>' + esc(x.remarks || '') + '</td>' +
 
                         '<td class="prx-images-cell">' +
                             renderImages(x.images) +
@@ -1089,34 +811,17 @@ function renderImages(images) {
             }).join('');
 
 
-        // -------------------------------------------------
         // PAGER
-        // -------------------------------------------------
-
         pager.innerHTML =
 
             '<div>' +
-
                 'Showing ' +
-
-                '<strong>' +
-                    (start + 1) +
-                '</strong>' +
-
+                '<strong>' + (start + 1) + '</strong>' +
                 ' - ' +
-
-                '<strong>' +
-                    end +
-                '</strong>' +
-
+                '<strong>' + end + '</strong>' +
                 ' of ' +
-
-                '<strong>' +
-                    filtered.length +
-                '</strong>' +
-
+                '<strong>' + filtered.length + '</strong>' +
                 ' records' +
-
             '</div>' +
 
             (
@@ -1127,48 +832,21 @@ function renderImages(images) {
                     '<div class="prx-pager-buttons">' +
 
                         '<button type="button" ' +
-                            'data-page="' +
-                                (page - 1) +
-                            '"' +
-                            (
-                                page <= 1
-                                    ? ' disabled'
-                                    : ''
-                            ) +
-                        '>' +
-                            '◀ Previous' +
-                        '</button>' +
+                            'data-page="' + (page - 1) + '"' +
+                            (page <= 1 ? ' disabled' : '') +
+                        '>◀ Previous</button>' +
 
                         '<span>' +
-
                             'Page ' +
-
-                            '<strong>' +
-                                page +
-                            '</strong>' +
-
+                            '<strong>' + page + '</strong>' +
                             ' of ' +
-
-                            '<strong>' +
-                                totalPages +
-                            '</strong>' +
-
+                            '<strong>' + totalPages + '</strong>' +
                         '</span>' +
 
                         '<button type="button" ' +
-                            'data-page="' +
-                                (page + 1) +
-                            '"' +
-                            (
-                                page >= totalPages
-                                    ? ' disabled'
-                                    : ''
-                            ) +
-                        '>' +
-
-                            'Next ▶' +
-
-                        '</button>' +
+                            'data-page="' + (page + 1) + '"' +
+                            (page >= totalPages ? ' disabled' : '') +
+                        '>Next ▶</button>' +
 
                     '</div>'
 
@@ -1185,14 +863,9 @@ function renderImages(images) {
 
     function initMap() {
 
-        const el =
-            $('prxMap');
+        const el = $('prxMap');
 
-
-        if (
-            !el ||
-            !window.L
-        ) {
+        if (!el || !window.L) {
 
             console.error(
                 'Progress map: element or Leaflet not found.'
@@ -1201,38 +874,23 @@ function renderImages(images) {
             return;
         }
 
-
-        prxMap =
-            L.map(el).setView(
-                [31.5204, 74.3587],
-                7
-            );
-
+        prxMap = L.map(el).setView([31.5204, 74.3587], 7);
 
         L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             {
-                attribution:
-                    '© OpenStreetMap contributors'
+                attribution: '© OpenStreetMap contributors'
             }
         ).addTo(prxMap);
-
 
         L.control.scale({
             imperial: false,
             position: 'bottomleft'
         }).addTo(prxMap);
 
+        markerLayer = L.layerGroup().addTo(prxMap);
 
-        markerLayer =
-            L.layerGroup().addTo(prxMap);
-
-
-        setTimeout(
-            () =>
-                prxMap.invalidateSize(),
-            300
-        );
+        setTimeout(() => prxMap.invalidateSize(), 300);
     }
 
 
@@ -1246,45 +904,28 @@ function renderImages(images) {
 
             '<div style="min-width:190px">' +
 
-                '<b>' +
-                    esc(x.site_name) +
-                '</b><br>' +
+                '<b>' + esc(x.site_name) + '</b><br>' +
 
-                esc(x.division) +
-                ' / ' +
-                esc(x.district) +
-                ' / ' +
+                esc(x.division) + ' / ' +
+                esc(x.district) + ' / ' +
                 esc(x.tehsil) +
 
                 '<br>' +
 
-                '<b>Package:</b> ' +
-                    esc(
-                        x.package_name ||
-                        'N/A'
-                    ) +
+                // CHANGED: Package ki jaga Category
+                '<b>Category:</b> ' + esc(x.category || 'N/A') +
 
                 '<br>' +
 
-                '<b>Plant Type:</b> ' +
-                    esc(
-                        x.plant_type ||
-                        'N/A'
-                    ) +
+                '<b>Plant Type:</b> ' + esc(x.plant_type || 'N/A') +
 
                 '<br>' +
 
-                '<b>Status:</b> ' +
-                    esc(
-                        x.status ||
-                        'N/A'
-                    ) +
+                '<b>Status:</b> ' + esc(x.status || 'N/A') +
 
                 '<br>' +
 
-                esc(x.lat) +
-                ', ' +
-                esc(x.lng) +
+                esc(x.lat) + ', ' + esc(x.lng) +
 
             '</div>'
         );
@@ -1301,39 +942,23 @@ function renderImages(images) {
             return;
         }
 
-
         markerLayer.clearLayers();
 
         markerById = {};
 
-
         const bounds = [];
-
 
         filtered.forEach(x => {
 
-            const lat =
-                parseFloat(x.lat);
+            const lat = parseFloat(x.lat);
 
-            const lng =
-                parseFloat(x.lng);
+            const lng = parseFloat(x.lng);
 
-
-            if (
-                !Number.isFinite(lat) ||
-                !Number.isFinite(lng)
-            ) {
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
                 return;
             }
 
-
-            const color =
-                STATUS_COLORS[
-                    statusClass(
-                        x.status
-                    )
-                ];
-
+            const color = STATUS_COLORS[statusClass(x.status)];
 
             const marker =
                 L.circleMarker(
@@ -1345,37 +970,20 @@ function renderImages(images) {
                         fillOpacity: 0.9,
                         weight: 1
                     }
-                ).bindPopup(
-                    popupHTML(x)
-                );
+                ).bindPopup(popupHTML(x));
 
+            marker.addTo(markerLayer);
 
-            marker.addTo(
-                markerLayer
-            );
+            markerById[x.id] = marker;
 
-
-            markerById[x.id] =
-                marker;
-
-
-            bounds.push([
-                lat,
-                lng
-            ]);
+            bounds.push([lat, lng]);
         });
 
 
-        // -------------------------------------------------
         // MAP ZOOM
-        // -------------------------------------------------
-
         if (bounds.length === 1) {
 
-            prxMap.setView(
-                bounds[0],
-                14
-            );
+            prxMap.setView(bounds[0], 14);
 
         } else if (bounds.length > 1) {
 
@@ -1389,10 +997,7 @@ function renderImages(images) {
 
         } else {
 
-            prxMap.setView(
-                [31.5204, 74.3587],
-                7
-            );
+            prxMap.setView([31.5204, 74.3587], 7);
         }
     }
 
@@ -1403,30 +1008,17 @@ function renderImages(images) {
 
     function focusRecord(id) {
 
-        const marker =
-            markerById[id];
+        const marker = markerById[id];
 
-
-        if (
-            !marker ||
-            !prxMap
-        ) {
+        if (!marker || !prxMap) {
             return;
         }
 
-
-        prxMap.setView(
-            marker.getLatLng(),
-            16
-        );
-
+        prxMap.setView(marker.getLatLng(), 16);
 
         marker.openPopup();
 
-
-        const mapEl =
-            $('prxMap');
-
+        const mapEl = $('prxMap');
 
         if (mapEl) {
 
@@ -1446,32 +1038,21 @@ function renderImages(images) {
 
         try {
 
-            if (
-                !window.jspdf ||
-                !window.jspdf.jsPDF
-            ) {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
 
-                alert(
-                    '❌ The jsPDF library failed to load.'
-                );
+                alert('❌ The jsPDF library failed to load.');
 
                 return;
             }
-
 
             if (!filtered.length) {
 
-                alert(
-                    'There are no records in the list.'
-                );
+                alert('There are no records in the list.');
 
                 return;
             }
 
-
-            const { jsPDF } =
-                window.jspdf;
-
+            const { jsPDF } = window.jspdf;
 
             const doc =
                 new jsPDF({
@@ -1480,29 +1061,15 @@ function renderImages(images) {
                     format: 'a4'
                 });
 
-
             doc.setFontSize(16);
 
-            doc.setFont(
-                undefined,
-                'bold'
-            );
+            doc.setFont(undefined, 'bold');
 
-
-            doc.text(
-                'SPASIS Progress Records',
-                10,
-                12
-            );
-
+            doc.text('SPASIS Progress Records', 10, 12);
 
             doc.setFontSize(9);
 
-            doc.setFont(
-                undefined,
-                'normal'
-            );
-
+            doc.setFont(undefined, 'normal');
 
             doc.text(
                 'Total Records: ' +
@@ -1513,13 +1080,13 @@ function renderImages(images) {
                 18
             );
 
-
+            // CHANGED: Package ki jaga Category
             const headers = [
                 '#',
                 'Division',
                 'District',
                 'Tehsil',
-                'Package',
+                'Category',
                 'Site Name',
                 'Plant',
                 'Status',
@@ -1527,20 +1094,7 @@ function renderImages(images) {
                 'Longitude'
             ];
 
-
-            const widths = [
-                8,
-                26,
-                28,
-                28,
-                28,
-                45,
-                24,
-                24,
-                33,
-                33
-            ];
-
+            const widths = [8, 26, 28, 28, 28, 45, 24, 24, 33, 33];
 
             const startX = 10;
 
@@ -1551,187 +1105,91 @@ function renderImages(images) {
 
             function drawHeader() {
 
-                let x =
-                    startX;
-
+                let x = startX;
 
                 doc.setFontSize(7);
 
-                doc.setFont(
-                    undefined,
-                    'bold'
-                );
+                doc.setFont(undefined, 'bold');
 
+                headers.forEach((h, i) => {
 
-                headers.forEach(
-                    (h, i) => {
+                    doc.setFillColor(11, 61, 98);
 
-                        doc.setFillColor(
-                            11,
-                            61,
-                            98
-                        );
+                    doc.setDrawColor(11, 61, 98);
 
+                    doc.rect(x, y, widths[i], rowHeight, 'FD');
 
-                        doc.setDrawColor(
-                            11,
-                            61,
-                            98
-                        );
+                    doc.setTextColor(255, 255, 255);
 
+                    doc.text(h, x + 2, y + 5);
 
-                        doc.rect(
-                            x,
-                            y,
-                            widths[i],
-                            rowHeight,
-                            'FD'
-                        );
+                    x += widths[i];
+                });
 
+                doc.setFont(undefined, 'normal');
 
-                        doc.setTextColor(
-                            255,
-                            255,
-                            255
-                        );
+                doc.setTextColor(0, 0, 0);
 
-
-                        doc.text(
-                            h,
-                            x + 2,
-                            y + 5
-                        );
-
-
-                        x +=
-                            widths[i];
-                    }
-                );
-
-
-                doc.setFont(
-                    undefined,
-                    'normal'
-                );
-
-
-                doc.setTextColor(
-                    0,
-                    0,
-                    0
-                );
-
-
-                y +=
-                    rowHeight;
+                y += rowHeight;
             }
 
 
             drawHeader();
 
 
-            filtered.forEach(
-                (item, index) => {
+            filtered.forEach((item, index) => {
 
-                    if (y > 190) {
+                if (y > 190) {
 
-                        doc.addPage();
+                    doc.addPage();
 
-                        y = 12;
+                    y = 12;
 
-                        drawHeader();
-                    }
-
-
-                    const row = [
-
-                        index + 1,
-
-                        item.division,
-
-                        item.district,
-
-                        item.tehsil,
-
-                        item.package_name,
-
-                        item.site_name,
-
-                        item.plant_type,
-
-                        item.status,
-
-                        item.lat,
-
-                        item.lng
-
-                    ];
-
-
-                    let x =
-                        startX;
-
-
-                    doc.setFontSize(7);
-
-
-                    row.forEach(
-                        (value, i) => {
-
-                            doc.setDrawColor(
-                                180,
-                                180,
-                                180
-                            );
-
-
-                            doc.rect(
-                                x,
-                                y,
-                                widths[i],
-                                rowHeight
-                            );
-
-
-                            const lines =
-                                doc.splitTextToSize(
-                                    String(
-                                        value ?? ''
-                                    ),
-                                    widths[i] - 4
-                                );
-
-
-                            doc.text(
-                                lines[0] || '',
-                                x + 2,
-                                y + 5
-                            );
-
-
-                            x +=
-                                widths[i];
-                        }
-                    );
-
-
-                    y +=
-                        rowHeight;
+                    drawHeader();
                 }
-            );
 
+                const row = [
+                    index + 1,
+                    item.division,
+                    item.district,
+                    item.tehsil,
+                    item.category,      // CHANGED
+                    item.site_name,
+                    item.plant_type,
+                    item.status,
+                    item.lat,
+                    item.lng
+                ];
 
-            doc.save(
-                'SPASIS_Progress_Records.pdf'
-            );
+                let x = startX;
+
+                doc.setFontSize(7);
+
+                row.forEach((value, i) => {
+
+                    doc.setDrawColor(180, 180, 180);
+
+                    doc.rect(x, y, widths[i], rowHeight);
+
+                    const lines =
+                        doc.splitTextToSize(
+                            String(value ?? ''),
+                            widths[i] - 4
+                        );
+
+                    doc.text(lines[0] || '', x + 2, y + 5);
+
+                    x += widths[i];
+                });
+
+                y += rowHeight;
+            });
+
+            doc.save('SPASIS_Progress_Records.pdf');
 
         } catch (error) {
 
-            console.error(
-                'PDF error:',
-                error
-            );
-
+            console.error('PDF error:', error);
 
             alert(
                 '❌ PDF could not be downloaded.\n\n' +
@@ -1749,79 +1207,40 @@ function renderImages(images) {
 
         if (!prxMap) {
 
-            alert(
-                'The map has not loaded.'
-            );
+            alert('The map has not loaded.');
 
             return;
         }
 
+        const center = prxMap.getCenter();
 
-        const center =
-            prxMap.getCenter();
-
-
-        const zoom =
-            prxMap.getZoom();
-
+        const zoom = prxMap.getZoom();
 
         const points =
             filtered
                 .filter(x =>
-                    Number.isFinite(
-                        parseFloat(x.lat)
-                    ) &&
-                    Number.isFinite(
-                        parseFloat(x.lng)
-                    )
+                    Number.isFinite(parseFloat(x.lat)) &&
+                    Number.isFinite(parseFloat(x.lng))
                 )
                 .map(x => ({
-
-                    lat:
-                        parseFloat(x.lat),
-
-                    lng:
-                        parseFloat(x.lng),
-
-                    color:
-                        STATUS_COLORS[
-                            statusClass(
-                                x.status
-                            )
-                        ],
-
-                    popup:
-                        popupHTML(x)
-
+                    lat: parseFloat(x.lat),
+                    lng: parseFloat(x.lng),
+                    color: STATUS_COLORS[statusClass(x.status)],
+                    popup: popupHTML(x)
                 }));
 
-
         const w =
-            window.open(
-                '',
-                '_blank',
-                'width=1200,height=900'
-            );
-
+            window.open('', '_blank', 'width=1200,height=900');
 
         if (!w) {
 
-            alert(
-                'Popup is blocked. Please allow popups in your browser.'
-            );
+            alert('Popup is blocked. Please allow popups in your browser.');
 
             return;
         }
 
-
         const safePoints =
-            JSON.stringify(
-                points
-            ).replace(
-                /</g,
-                '\\u003c'
-            );
-
+            JSON.stringify(points).replace(/</g, '\\u003c');
 
         w.document.write(
 
@@ -1833,33 +1252,18 @@ function renderImages(images) {
 
                 '<meta charset="UTF-8">' +
 
-                '<title>' +
-                    'SPASIS Progress Map' +
-                '</title>' +
+                '<title>SPASIS Progress Map</title>' +
 
                 '<link rel="stylesheet" ' +
                     'href="https://unpkg.com/leaflet/dist/leaflet.css">' +
 
                 '<style>' +
 
-                    'html,body{' +
-                        'margin:0;' +
-                        'height:100%' +
-                    '}' +
+                    'html,body{margin:0;height:100%}' +
 
-                    '#m{' +
-                        'width:100%;' +
-                        'height:100vh' +
-                    '}' +
+                    '#m{width:100%;height:100vh}' +
 
-                    '@media print{' +
-
-                        '@page{' +
-                            'size:landscape;' +
-                            'margin:0' +
-                        '}' +
-
-                    '}' +
+                    '@media print{@page{size:landscape;margin:0}}' +
 
                 '</style>' +
 
@@ -1873,18 +1277,11 @@ function renderImages(images) {
 
                 '<script>' +
 
-                    'var pts=' +
-                        safePoints +
-                    ';' +
+                    'var pts=' + safePoints + ';' +
 
-                    'var m=' +
-                        'L.map("m").setView([' +
-                            center.lat +
-                            ',' +
-                            center.lng +
-                        '],' +
-                        zoom +
-                    ');' +
+                    'var m=L.map("m").setView([' +
+                        center.lat + ',' + center.lng +
+                    '],' + zoom + ');' +
 
                     'L.tileLayer(' +
                         '"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",' +
@@ -1895,13 +1292,8 @@ function renderImages(images) {
 
                         'L.circleMarker(' +
                             '[p.lat,p.lng],' +
-                            '{' +
-                                'radius:7,' +
-                                'color:p.color,' +
-                                'fillColor:p.color,' +
-                                'fillOpacity:.9,' +
-                                'weight:1' +
-                            '}' +
+                            '{radius:7,color:p.color,fillColor:p.color,' +
+                            'fillOpacity:.9,weight:1}' +
                         ')' +
 
                         '.addTo(m)' +
@@ -1927,7 +1319,6 @@ function renderImages(images) {
             '</html>'
         );
 
-
         w.document.close();
     }
 
@@ -1940,20 +1331,17 @@ function renderImages(images) {
 
         if (!filtered.length) {
 
-            alert(
-                'There are no records to export.'
-            );
+            alert('There are no records to export.');
 
             return;
         }
 
-
+        // CHANGED: Package ki jaga Category
         const head = [
-
             'Division',
             'District',
             'Tehsil',
-            'Package',
+            'Category',
             'Site Name',
             'Plant Type',
             'Status',
@@ -1964,30 +1352,24 @@ function renderImages(images) {
             'GPS Accuracy',
             'Remarks',
             'Added On'
-
         ];
-
 
         const q = v =>
             '"' +
-            String(v ?? '')
-                .replace(/"/g, '""') +
+            String(v ?? '').replace(/"/g, '""') +
             '"';
-
 
         const lines = [
             head.map(q).join(',')
         ];
 
-
         filtered.forEach(x => {
 
             lines.push([
-
                 x.division,
                 x.district,
                 x.tehsil,
-                x.package_name,
+                x.category,         // CHANGED
                 x.site_name,
                 x.plant_type,
                 x.status,
@@ -1998,57 +1380,28 @@ function renderImages(images) {
                 x.accuracy,
                 x.remarks,
                 x.created_at
-
             ].map(q).join(','));
         });
 
-
         const blob =
             new Blob(
-                [
-                    '\uFEFF' +
-                    lines.join('\r\n')
-                ],
-                {
-                    type:
-                        'text/csv;charset=utf-8;'
-                }
+                ['\uFEFF' + lines.join('\r\n')],
+                { type: 'text/csv;charset=utf-8;' }
             );
 
+        const link = document.createElement('a');
 
-        const link =
-            document.createElement(
-                'a'
-            );
+        link.href = URL.createObjectURL(blob);
 
+        link.download = 'SPASIS_Progress_Records.csv';
 
-        link.href =
-            URL.createObjectURL(
-                blob
-            );
-
-
-        link.download =
-            'SPASIS_Progress_Records.csv';
-
-
-        document.body.appendChild(
-            link
-        );
-
+        document.body.appendChild(link);
 
         link.click();
 
         link.remove();
 
-
-        setTimeout(
-            () =>
-                URL.revokeObjectURL(
-                    link.href
-                ),
-            1000
-        );
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
 
 
@@ -2058,245 +1411,123 @@ function renderImages(images) {
 
     function bindEvents() {
 
+        // DIVISION > DISTRICT > TEHSIL > CATEGORY
+        FIELDS.forEach(f => {
 
-        // -------------------------------------------------
-        // DIVISION > DISTRICT > TEHSIL > PACKAGE
-        // -------------------------------------------------
+            const el = $(f.id);
 
-        FIELDS.forEach(
-            (f, index) => {
+            if (!el) {
+                return;
+            }
 
-                const el =
-                    $(f.id);
+            el.addEventListener('change', e => {
 
+                sel[f.key] = e.target.value;
 
-                if (!el) {
-                    return;
+                // Parent change hone par child selections clear
+                if (f.key === 'division') {
+
+                    sel.district = '';
+                    sel.tehsil = '';
+                    sel.category = '';
+
+                } else if (f.key === 'district') {
+
+                    sel.tehsil = '';
+                    sel.category = '';
+
+                } else if (f.key === 'tehsil') {
+
+                    sel.category = '';
                 }
 
+                buildOptions();
 
-                el.addEventListener(
-                    'change',
-                    e => {
-
-                        const value =
-                            e.target.value;
+                applyFilters();
+            });
+        });
 
 
-                        // -------------------------------------------------
-                        // Save the selected value
-                        // -------------------------------------------------
-
-                        sel[f.key] =
-                            value;
-
-
-                        // -------------------------------------------------
-                        // If the parent was cleared:
-                        // clear the child selections
-                        // -------------------------------------------------
-
-                        if (
-                            f.key === 'division'
-                        ) {
-
-                            sel.district = '';
-                            sel.tehsil = '';
-                            sel.package_name = '';
-
-                        } else if (
-                            f.key === 'district'
-                        ) {
-
-                            sel.tehsil = '';
-                            sel.package_name = '';
-
-                        } else if (
-                            f.key === 'tehsil'
-                        ) {
-
-                            sel.package_name = '';
-                        }
-
-
-                        // -------------------------------------------------
-                        // Rebuild dropdowns
-                        // -------------------------------------------------
-
-                        buildOptions();
-
-
-                        // -------------------------------------------------
-                        // Apply records
-                        // -------------------------------------------------
-
-                        applyFilters();
-                    }
-                );
-            }
-        );
-
-
-        // -------------------------------------------------
-        // TABLE ROW CLICK
-        // Focus the record on the map
-        // -------------------------------------------------
-
-        const body =
-            $('prxBody');
-
+        // TABLE ROW CLICK: record ko map par focus karein
+        const body = $('prxBody');
 
         if (body) {
 
-            body.addEventListener(
-                'click',
-                e => {
+            body.addEventListener('click', e => {
 
-                    const recordRow =
-                        e.target.closest(
-                            'tr[data-id]'
-                        );
+                const recordRow = e.target.closest('tr[data-id]');
 
+                if (recordRow) {
 
-                    if (recordRow) {
-
-                        focusRecord(
-                            Number(
-                                recordRow.dataset.id
-                            )
-                        );
-                    }
+                    focusRecord(Number(recordRow.dataset.id));
                 }
-            );
+            });
         }
 
 
-        // -------------------------------------------------
         // PAGINATION
-        // -------------------------------------------------
-
-        const pager =
-            $('prxPager');
-
+        const pager = $('prxPager');
 
         if (pager) {
 
-            pager.addEventListener(
-                'click',
-                e => {
+            pager.addEventListener('click', e => {
 
-                    const btn =
-                        e.target.closest(
-                            'button[data-page]'
-                        );
+                const btn = e.target.closest('button[data-page]');
 
+                if (btn && !btn.disabled) {
 
-                    if (
-                        btn &&
-                        !btn.disabled
-                    ) {
+                    page = Number(btn.dataset.page);
 
-                        page =
-                            Number(
-                                btn.dataset.page
-                            );
+                    renderTable();
 
+                    const tableBox = document.querySelector('.prx-table-box');
 
-                        renderTable();
+                    if (tableBox) {
 
-
-                        const tableBox =
-                            document.querySelector(
-                                '.prx-table-box'
-                            );
-
-
-                        if (tableBox) {
-
-                            tableBox.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            });
-                        }
+                        tableBox.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
                     }
                 }
-            );
+            });
         }
 
 
-        // -------------------------------------------------
         // PDF
-        // -------------------------------------------------
-
-        const pdf =
-            $('prxBtnPDF');
-
+        const pdf = $('prxBtnPDF');
 
         if (pdf) {
-            pdf.addEventListener(
-                'click',
-                downloadListPDF
-            );
+            pdf.addEventListener('click', downloadListPDF);
         }
 
-
-        // -------------------------------------------------
         // PRINT MAP
-        // -------------------------------------------------
-
-        const print =
-            $('prxBtnPrint');
-
+        const print = $('prxBtnPrint');
 
         if (print) {
-
-            print.addEventListener(
-                'click',
-                printMap
-            );
+            print.addEventListener('click', printMap);
         }
 
-
-        // -------------------------------------------------
         // CSV
-        // -------------------------------------------------
-
-        const csv =
-            $('prxBtnCSV');
-
+        const csv = $('prxBtnCSV');
 
         if (csv) {
-
-            csv.addEventListener(
-                'click',
-                exportCSV
-            );
+            csv.addEventListener('click', exportCSV);
         }
 
-
-        // -------------------------------------------------
         // REFRESH
-        // -------------------------------------------------
-
-        const refresh =
-            $('prxBtnRefresh');
-
+        const refresh = $('prxBtnRefresh');
 
         if (refresh) {
 
-            refresh.addEventListener(
-                'click',
-                () => {
+            refresh.addEventListener('click', () => {
 
-                    // Return the page to its initial
-                    // state
+                // Page ko initial state par wapas
+                initializePage();
 
-                    initializePage();
-
-                    // Fresh DB data
-                    loadRecords();
-                }
-            );
+                // Fresh DB data
+                loadRecords();
+            });
         }
     }
 
@@ -2315,15 +1546,9 @@ function renderImages(images) {
     }
 
 
-    if (
-        document.readyState ===
-        'loading'
-    ) {
+    if (document.readyState === 'loading') {
 
-        document.addEventListener(
-            'DOMContentLoaded',
-            start
-        );
+        document.addEventListener('DOMContentLoaded', start);
 
     } else {
 

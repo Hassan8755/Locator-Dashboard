@@ -3936,17 +3936,22 @@ def api_progress_list():
     finally:
         cursor.close()
         db.close()
-
+        
 @app.route("/api/progress", methods=["POST"])
 def api_progress_add():
     d = request.get_json(silent=True) or {}
 
+    # CHANGED: "package_name" ki jaga "category"
     for f in (
         "division", "district", "tehsil",
-        "package_name", "site_name"
+        "category", "site_name"
     ):
         if not str(d.get(f, "")).strip():
             return jsonify({"error": f + " required"}), 400
+
+    # CHANGED: category sirf ye 2 values ho sakti hain
+    if d["category"].strip() not in ("Executing Agency", "Assisting Agency"):
+        return jsonify({"error": "Invalid category"}), 400
 
     if d.get("lat") in (None, "") or d.get("lng") in (None, ""):
         return jsonify({"error": "GPS required"}), 400
@@ -3984,9 +3989,10 @@ def api_progress_add():
     cursor = db.cursor()
 
     try:
+        # CHANGED: INSERT mein package_name ki jaga category
         cursor.execute("""
             INSERT INTO progress_records (
-                division, district, tehsil, package_name,
+                division, district, tehsil, category,
                 site_name, plant_type, lat, lng, accuracy,
                 status, start_date, end_date, remarks,
                 captured_at, images
@@ -3999,7 +4005,7 @@ def api_progress_add():
             d["division"].strip(),
             d["district"].strip(),
             d["tehsil"].strip(),
-            d["package_name"].strip(),
+            d["category"].strip(),          # CHANGED
             d["site_name"].strip(),
             (d.get("plant_type") or "").strip(),
             lat,
