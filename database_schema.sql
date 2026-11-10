@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS progress_records (
     division VARCHAR(255) NOT NULL,
     district VARCHAR(255) NOT NULL,
     tehsil VARCHAR(255) NOT NULL,
-    package_name VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
     site_name VARCHAR(255) NOT NULL,
     plant_type VARCHAR(255) NULL,
     lat DECIMAL(12,8) NOT NULL,
@@ -96,11 +96,12 @@ CREATE TABLE IF NOT EXISTS progress_records (
     end_date DATE NULL,
     remarks TEXT NULL,
     captured_at VARCHAR(100) NULL,
+    images TEXT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     KEY idx_progress_division (division),
     KEY idx_progress_district (district),
     KEY idx_progress_tehsil (tehsil),
-    KEY idx_progress_package (package_name),
+    KEY idx_progress_category (category),
     KEY idx_progress_site (site_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

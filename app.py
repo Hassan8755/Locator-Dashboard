@@ -3850,23 +3850,63 @@ def get_map_boundaries():
 # =========================================================
 # 📈 SPASIS LOCATOR / PROJECT LOCATOR
 # =========================================================
+# DB mein sirf file ka naam save hota hai. Page ko dikhane ke liye is folder URL se jorte hain.
+PROGRESS_IMAGE_URL = "/static/uploads/progress_records/"
 
-def save_progress_images(images):
+
+PROGRESS_UPLOAD_ROOT = os.path.join(app.root_path, "static", "uploads", "progress_records")
+
+
+def safe_district_folder(district):
+    """Build a folder name from the district: lowercase, spaces/dashes become _ (e.g. "DG Khan" -> dg_khan)."""
+    name = re.sub(r"[^a-z0-9]+", "_", str(district or "").lower()).strip("_")
+    return name[:60] or "unknown_district"
+
+
+def image_names_to_urls(names, district=""):
+    """Convert file names stored in the DB into full URLs for the page.
+    The photo lives in the folder of the record's district.
+    Old records (full path or old flat folder) keep working unchanged."""
+    folder = safe_district_folder(district)
+    urls = []
+    for name in names:
+        if not isinstance(name, str) or not name.strip():
+            continue
+        name = name.strip()
+        if name.startswith("/"):
+            urls.append(name)
+            continue
+        name = os.path.basename(name)
+        in_district = os.path.join(PROGRESS_UPLOAD_ROOT, folder, name)
+        if os.path.exists(in_district):
+            urls.append(PROGRESS_IMAGE_URL + folder + "/" + name)
+        else:
+            urls.append(PROGRESS_IMAGE_URL + name)   # purani photo, flat folder mein
+    return urls
+    
+def safe_image_basename(site_name):
+    """Make the site name safe for use in a file name (only A-Z a-z 0-9 and _).
+    Path traversal (../) and special characters are removed here."""
+    name = re.sub(r"[^A-Za-z0-9]+", "_", str(site_name or "")).strip("_")
+    return name[:60] or "site"
+
+def save_progress_images(images, site_name="", district=""):
     if not isinstance(images, list):
         raise ValueError("Images must be a list.")
 
     if len(images) > 3:
         raise ValueError("Maximum 3 photos are allowed.")
 
+    # Har district ki photos apne district ke folder mein (e.g. .../progress_records/dg_khan/)
     upload_dir = os.path.join(
-        app.root_path,
-        "static",
-        "uploads",
-        "progress_records"
+        PROGRESS_UPLOAD_ROOT,
+        safe_district_folder(district)
     )
     os.makedirs(upload_dir, exist_ok=True)
 
     saved_paths = []
+    base = safe_image_basename(site_name)
+    next_number = 1
 
     for image_data in images:
         if not isinstance(image_data, str):
@@ -3881,25 +3921,31 @@ def save_progress_images(images):
         except Exception:
             raise ValueError("Invalid image encoding.")
 
-        # Maximum 5 MB per image
+        # Maximum 1 MB per image
         if len(image_bytes) > 1 * 1024 * 1024:
-            raise ValueError("Each image must be 5 MB or smaller.")
+            raise ValueError("Each image must be 1 MB or smaller.")
 
         # Validate actual JPEG file signature
         if not image_bytes.startswith(b"\xff\xd8\xff"):
             raise ValueError("Invalid JPEG image.")
 
-        filename = f"{uuid.uuid4().hex}.jpg"
-        filepath = os.path.join(upload_dir, filename)
+        # File ka naam = site name + photo number (e.g. Kot_Addu_Plant-1.jpg, -2, -3).
+        # Agar isi site ki photo pehle se maujood ho to agla khali number liya jata hai,
+        # taake purani photo overwrite na ho.
+        while True:
+            filename = f"{base}-{next_number}.jpg"
+            filepath = os.path.join(upload_dir, filename)
+            next_number += 1
+            if not os.path.exists(filepath):
+                break
 
         with open(filepath, "wb") as image_file:
             image_file.write(image_bytes)
 
-        saved_paths.append(
-            f"/static/uploads/progress_records/{filename}"
-        )
+        saved_paths.append(filename)
 
     return saved_paths
+
 @app.route("/progress")
 def progress():
     return render_template("progress.html")
@@ -3930,6 +3976,9 @@ def api_progress_list():
                     r["images"] = []
             except (ValueError, TypeError):
                 r["images"] = []
+
+            # DB mein sirf naam hai; page ke liye poora URL banayein
+            r["images"] = image_names_to_urls(r["images"], r.get("district"))
 
         return jsonify(rows)
 
@@ -3981,7 +4030,7 @@ def api_progress_add():
 
     # Capture ki hui photos server par save karein
     try:
-        image_paths = save_progress_images(d.get("images", []))
+        image_paths = save_progress_images(d.get("images", []), d["site_name"], d["district"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
