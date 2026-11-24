@@ -3999,7 +3999,7 @@ def api_progress_add():
             return jsonify({"error": f + " required"}), 400
 
     # CHANGED: category sirf ye 2 values ho sakti hain
-    if d["category"].strip() not in ("Executing Agency", "Assisting Agency"):
+    if d["category"].strip() not in ("Under Execution", "Existing"):
         return jsonify({"error": "Invalid category"}), 400
 
     if d.get("lat") in (None, "") or d.get("lng") in (None, ""):

@@ -8,9 +8,6 @@ const site = document.getElementById('pSite');
 const plant = document.getElementById('pPlantType');
 const pLat = document.getElementById('pLat');
 const pLng = document.getElementById('pLng');
-const pStatus = document.getElementById('pStatus');
-const pStart = document.getElementById('pStart');
-const pEnd = document.getElementById('pEnd');
 const pRemarks = document.getElementById('pRemarks');
 const captureLocationBtn = document.getElementById('captureLocation');
 const captureStatus = document.getElementById('captureStatus');
@@ -534,7 +531,7 @@ async function syncPending() {
 
 function resetProgressForm() {
   // CHANGED: Division/District/Tehsil ab dropdown hain, unhe resetCascade() reset karta hai
-  document.querySelectorAll('#pSite,#pPlantType,#pStart,#pEnd,#pRemarks').forEach(x => x.value = '');
+  document.querySelectorAll('#pSite,#pPlantType,#pRemarks').forEach(x => x.value = '');
   resetCascade();
   category.value = '';
   if (window.progressPhotos) window.progressPhotos.length = 0;
@@ -542,7 +539,6 @@ function resetProgressForm() {
   if (gallery) gallery.innerHTML = '';
   const photoStatus = document.getElementById('photoStatus');
   if (photoStatus) photoStatus.textContent = 'Capture GPS first, then take photos.';
-  pStatus.value = 'In Progress';
   pLat.value = ''; pLng.value = '';
   gpsAccuracy.textContent = '—'; captureTime.textContent = '—';
   captureStatus.textContent = 'Press Capture Current Location to take a new field observation.';
@@ -573,9 +569,10 @@ document.querySelector('.save-btn').addEventListener('click', async () => {
     lat: pLat.value,
     lng: pLng.value,
     accuracy: gpsAccuracy.textContent,
-    status: pStatus.value,
-    start_date: pStart.value,
-    end_date: pEnd.value,
+    // Category se status: Under Execution = In Progress, Existing = Completed
+    status: category.value === 'Existing' ? 'Completed' : 'In Progress',
+    start_date: '',
+    end_date: '',
     remarks: pRemarks.value.trim(),
     captured_at: captureTime.textContent,
     images: (window.progressPhotos || []).map(photo => photo.dataUrl)
