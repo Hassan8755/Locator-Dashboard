@@ -655,8 +655,6 @@
                 '<th>Site Name</th>' +
                 '<th>Plant Type</th>' +
                 '<th>Status</th>' +
-                '<th>Start Date</th>' +
-                '<th>Expected Completion</th>' +
                 '<th>Latitude</th>' +
                 '<th>Longitude</th>' +
                 '<th>Remarks</th>' +
@@ -740,7 +738,7 @@
 
             body.innerHTML =
                 '<tr>' +
-                    '<td colspan="14" class="prx-empty">' +
+                    '<td colspan="12" class="prx-empty">' +
                         (
                             loadFailed
                                 ? 'Data could not be loaded. Please check the server.'
@@ -797,10 +795,6 @@
                                 esc(x.status || '') +
                             '</span>' +
                         '</td>' +
-
-                        '<td>' + esc(x.start_date || '') + '</td>' +
-
-                        '<td>' + esc(x.end_date || '') + '</td>' +
 
                         '<td>' + esc(x.lat ?? '') + '</td>' +
 
@@ -1590,8 +1584,6 @@ async function loadSelectedBoundaries() {
             'Site Name',
             'Plant Type',
             'Status',
-            'Start Date',
-            'Expected Completion',
             'Latitude',
             'Longitude',
             'GPS Accuracy',
@@ -1618,8 +1610,6 @@ async function loadSelectedBoundaries() {
                 x.site_name,
                 x.plant_type,
                 x.status,
-                x.start_date,
-                x.end_date,
                 x.lat,
                 x.lng,
                 x.accuracy,
